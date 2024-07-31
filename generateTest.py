@@ -1,0 +1,179 @@
+from openai import OpenAI
+from dotenv import dotenv_values
+import os
+import json
+import re
+import subprocess
+
+env_vars = dotenv_values(".env")
+KEY = env_vars.get("OPENAI_API_KEY")
+PROJECT_ID = env_vars.get("PROJECT_ID")
+client = OpenAI(
+    api_key=KEY,
+    organization='org-hb4V3o4P9oJnavCMtYL4yWDi',
+    project=PROJECT_ID,
+)
+
+
+raiz = "/home/lucas/tcc"
+projectSource = "/home/lucas/tcc/reps/zaproxy"
+
+def createFile():
+    with open('arquivo.txt', 'w') as f:
+        f.write("Olá, tudo bem?")
+
+def getOpenAiResponse(prompt):
+
+    response = client.chat.completions.create(    
+        model="gpt-3.5-turbo",
+        messages=[
+         {"role": "user", "content": prompt},
+        ],)
+
+    return response.choices[0].message.content
+
+
+def readFile(nome):
+    with open(nome, 'r') as f:
+        return f.read()
+
+def readJson(nome):
+    with open(nome, 'r') as f:
+        return json.load(f)
+
+def writeFile(fileName, content):
+    try:
+        with open(fileName, 'w', encoding='utf-8') as file:
+            file.write(content)
+            file.close()
+    except Exception as e:
+        print("Erro: " + e)
+
+def readClass(filename):
+    result = ""
+    with open(filename, 'r', encoding='utf-8') as file:
+        for line in file:
+            if not line.strip().startswith(('*', '/')):
+                result += line
+    return result
+
+def extractCode(response_text):
+    # Expressão regular para extrair blocos de código Java
+    java_code_pattern = re.compile(r'```java(.*?)```', re.DOTALL)
+    java_code_blocks = java_code_pattern.findall(response_text)
+    return "\n\n".join(java_code_blocks)
+
+
+def runTest(projectPath, testPath):
+    testPackage = packagePath(testPath)
+    print(testPackage)
+    try:
+        os.chdir(projectPath)
+        print(f"Successfully changed the directory to: {os.getcwd()}")
+        command = ["./gradlew",  "-x", "check", "cleanTest", "test", "--tests", testPackage]
+        print("Running test: "+testPackage+ "...")
+        result = subprocess.run(command, capture_output=True, text=True)
+        print(result.stdout)
+        # print(result.stdout)
+        os.chdir(raiz)
+        if (result.stderr.find("BUILD FAILED") != -1):
+            print("====Teste falhou!=====")
+            return False, result.stderr
+        return True
+    except FileNotFoundError:
+        print(f"Error: The directory {projectPath} does not exist.")
+   
+
+
+def runTests(projectPath):
+    command = ["./gradlew",  "-x", "check", "cleanTest", "test"]
+    os.chdir(projectPath)
+    print("Running tests...")
+    result = subprocess.run(command, capture_output=True, text=True)
+    os.chdir(raiz)
+    # print(result.stdout)
+    if (result.stderr.find("BUILD FAILED") != -1):
+        print("====Teste falhou!===== ")
+    # print(result.stderr.find("BUILD FAILED"))
+
+def optmizeTest(testPath, errorMessage):
+    optmizerTemplate = readFile('optmizerTemplate.txt')
+    pattern = re.compile(r"(.*?)(\* Try:)", re.DOTALL)
+    match = pattern.search(errorMessage)
+
+    if match:
+        captured_text = match.group(1)
+
+    prompt = buildPrompt(testPath, optmizerTemplate, captured_text)
+     # submit the prompt to OpenAI
+    response = getOpenAiResponse(prompt)
+    # Extract the code from the response
+    javaCode = extractCode(response)
+    # Save the code in the test file
+    writeFile(testPath, javaCode)
+
+    
+
+def packagePath(filepath):
+    path = os.path.splitext(filepath)[0]
+    package = path.replace(os.path.sep, '.')
+    items = package.split('.')
+    if 'org' in items:
+        pacote = '.'.join(items[items.index('org'):])
+    return pacote
+
+def buildPrompt(code, template, error):
+    if(len(error) > 0):
+        return f'{code}\n\n{template}\{error}'
+    else:
+        return f'{code}\n\n{template}'
+
+
+def saveTestFile(testPath, code):
+    with open(testPath, 'w') as f:
+        f.write(code)
+
+def main():
+    generatioTemplate = readFile('generatioTemplate.txt')
+    infos = readJson('infos.json')
+    count = 0
+    optmizeTries = 0
+    testcompiled = False
+    # while count < len(infos):
+    while count < 1:
+        for item in infos:
+            optmizeTries = 0
+            # Escolhendo as melhores classes
+            classe = readClass(f"{item['path']}")
+            # Ratio lines of code by methods
+            if len(classe.splitlines())/len(item['metodos']) < 30:
+                # Create prompt with informations of the class
+                generatioTemplate = generatioTemplate.replace('CLASS_NAME', item['className'])
+                generatioTemplate = generatioTemplate.replace('METHOD_NAME', ', '.join(item['metodos']))
+                prompt = buildPrompt(classe, generatioTemplate, item['metodos'])
+                # submit the prompt to OpenAI
+                response = getOpenAiResponse(prompt)
+                # Extract the code from the response
+                javaCode = extractCode(response)
+                # Save the code in the test file
+                print(javaCode)
+                writeFile(item['testPath'], javaCode)
+                # Run the test
+                while optmizeTries < 3:
+                    print("Classe: "+ item['className'])
+                    print("Optmize try: "+str(optmizeTries))
+                    optmizeTries += 1
+                    testcompiled, error = runTest(projectSource, item['testPath'])
+                    if testcompiled:
+                        break
+                    optmizeTest(item['testPath'], error)
+
+        count +=1
+
+    # Run all tests
+    # runTests(raiz)
+if __name__ == "__main__":
+    main()
+
+# /home/lucas/tcc/reps/zaproxy/zap/src/test/java/org/zaproxy/zap/ZAPUnitTest.java
+# /home/lucas/tcc/reps/zaproxy/zap/src/test/java/org/zaproxy/zap/VersionUnitTest.java
