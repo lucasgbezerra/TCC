@@ -16,7 +16,6 @@ client = OpenAI(
 
 
 raiz = "/home/lucas/tcc"
-projectSource = "/home/lucas/tcc/reps/zaproxy"
 
 def createFile():
     with open('arquivo.txt', 'w') as f:
@@ -64,53 +63,97 @@ def extractCode(response_text):
     return "\n\n".join(java_code_blocks)
 
 
-def runTest(projectPath, testPath):
+def runTest(projectPath, testPath, isGradlew):
     testPackage = packagePath(testPath)
-    print(testPackage)
+    print("Test Package: " + testPackage)
     try:
         os.chdir(projectPath)
         print(f"Successfully changed the directory to: {os.getcwd()}")
-        command = ["./gradlew",  "-x", "check", "cleanTest", "test", "--tests", testPackage]
+        if(isGradlew):
+            command = ["./gradlew",  "-x", "check", "cleanTest", "test", "--tests", testPackage]
+        else:
+            command = ["mvn", f'-Dtest={testPackage}', "test"]
+
         print("Running test: "+testPackage+ "...")
         result = subprocess.run(command, capture_output=True, text=True)
-        print(result.stdout)
-        # print(result.stdout)
-        os.chdir(raiz)
-        if (result.stderr.find("BUILD FAILED") != -1):
-            print("====Teste falhou!=====")
-            return False, result.stderr
-        return True
+        # Print stdout and stderr for debugging
+        print("stdout:\n", result.stdout)
+        print("stderr:\n", result.stderr)
+
+        if result.returncode == 0:
+            print("Tests ran successfully")
+            return True, None
+        else:
+            print("Tests failed")
+            return False , result.stderr
+        
     except FileNotFoundError:
         print(f"Error: The directory {projectPath} does not exist.")
+
+    finally:
+        os.chdir(raiz)
    
 
 
-def runTests(projectPath):
-    command = ["./gradlew",  "-x", "check", "cleanTest", "test"]
-    os.chdir(projectPath)
-    print("Running tests...")
-    result = subprocess.run(command, capture_output=True, text=True)
-    os.chdir(raiz)
-    # print(result.stdout)
-    if (result.stderr.find("BUILD FAILED") != -1):
-        print("====Teste falhou!===== ")
-    # print(result.stderr.find("BUILD FAILED"))
+def runTests(projectPath, isGradlew):
+    try:
+        print("Running all tests...")
+        os.chdir(projectPath)
+        if isGradlew:
+            command = ["./gradlew",  "-x", "check", "cleanTest", "test"]
+        else:
+            command = ["mvn", "surefire-report:report"]
+        print("Running tests...")
+        result = subprocess.run(command, capture_output=True, text=True)
+        if result.returncode == 0:
+            print(result.stdout)
+            return True, "Tests ran successfully:\n" + result.stdout
+        else:
+            print(result.stderr)
+            return False , result.stderr
+    finally:
+        os.chdir(raiz)
 
-def optmizeTest(testPath, errorMessage):
+# def runTestMaven(projectPath, testPath):
+#     testPackage = packagePath(testPath)
+#     print(testPackage)
+#     try:
+#         os.chdir(projectPath)
+#         print(f"Successfully changed the directory to: {os.getcwd()}")
+#         print("Running test: "+testPackage+ "...")
+#         result = subprocess.run(command, capture_output=True, text=True)
+#         if result.returncode == 0:
+#             return True, "Tests ran successfully:\n" + result.stdout
+#         else:
+#             return False ,result.stderr
+
+#     except FileNotFoundError:
+#         print(f"Error: The directory {projectPath} does not exist.")
+    
+#     finally:
+#         os.chdir(raiz)
+
+def optmizeTest(testPath, errorMessage, isGradlew):
     optmizerTemplate = readFile('optmizerTemplate.txt')
-    pattern = re.compile(r"(.*?)(\* Try:)", re.DOTALL)
-    match = pattern.search(errorMessage)
-
-    if match:
-        captured_text = match.group(1)
-
-    prompt = buildPrompt(testPath, optmizerTemplate, captured_text)
-     # submit the prompt to OpenAI
-    response = getOpenAiResponse(prompt)
-    # Extract the code from the response
-    javaCode = extractCode(response)
-    # Save the code in the test file
-    writeFile(testPath, javaCode)
+    if isGradlew:
+        pattern = re.compile(r"(.*?)(\* Try:)", re.DOTALL)
+        match = pattern.search(errorMessage)
+        if match:
+            error = match.group(1)
+    else:
+        error_lines = [line for line in errorMessage if '[ERROR]' in line]
+        error = '\n'.join(error_lines)
+    try:
+        print(error)
+        prompt = buildPrompt(testPath, optmizerTemplate, error)
+        # submit the prompt to OpenAI
+        response = getOpenAiResponse(prompt)
+        # Extract the code from the response
+        javaCode = extractCode(response)
+        # Save the code in the test file
+        writeFile(testPath, javaCode) 
+    except Exception as e:
+        print("Error: "+ e) 
 
     
 
@@ -119,8 +162,9 @@ def packagePath(filepath):
     package = path.replace(os.path.sep, '.')
     items = package.split('.')
     if 'org' in items:
-        pacote = '.'.join(items[items.index('org'):])
-    return pacote
+        package = '.'.join(items[items.index('org'):])
+
+    return package
 
 def buildPrompt(code, template, error):
     if(len(error) > 0):
@@ -132,46 +176,46 @@ def buildPrompt(code, template, error):
 def saveTestFile(testPath, code):
     with open(testPath, 'w') as f:
         f.write(code)
+def main():
+    packagePath("/home/lucas/tcc/reps/zaproxy/zap/src/test/java/org/zaproxy/zap/ZAPUnitTest.java")
 
 def main():
-    generatioTemplate = readFile('generatioTemplate.txt')
-    infos = readJson('infos.json')
+    generatioTemplate = readFile('template2.txt')
+    projectsInfos = readJson('projectsInfos.json')
+    classesInfo = readJson('infos.json')
     count = 0
     optmizeTries = 0
     testcompiled = False
-    # while count < len(infos):
-    while count < 1:
-        for item in infos:
-            optmizeTries = 0
-            # Escolhendo as melhores classes
-            classe = readClass(f"{item['path']}")
-            # Ratio lines of code by methods
-            if len(classe.splitlines())/len(item['metodos']) < 30:
-                # Create prompt with informations of the class
-                generatioTemplate = generatioTemplate.replace('CLASS_NAME', item['className'])
-                generatioTemplate = generatioTemplate.replace('METHOD_NAME', ', '.join(item['metodos']))
-                prompt = buildPrompt(classe, generatioTemplate, item['metodos'])
-                # submit the prompt to OpenAI
-                response = getOpenAiResponse(prompt)
-                # Extract the code from the response
-                javaCode = extractCode(response)
-                # Save the code in the test file
-                print(javaCode)
-                writeFile(item['testPath'], javaCode)
-                # Run the test
-                while optmizeTries < 3:
-                    print("Classe: "+ item['className'])
-                    print("Optmize try: "+str(optmizeTries))
-                    optmizeTries += 1
-                    testcompiled, error = runTest(projectSource, item['testPath'])
-                    if testcompiled:
-                        break
-                    optmizeTest(item['testPath'], error)
 
+    while count < len(projectsInfos):
+        print(classesInfo[count]['project'])
+        for classInfo in classesInfo[count]['classes']:
+            print(classInfo['name'])
+            optmizeTries = 0
+            # Create prompt with informations of the class
+            generatioTemplate = generatioTemplate.replace('CLASS_NAME', classInfo['name'])
+            generatioTemplate = generatioTemplate.replace('CLASS_PATH', classInfo['classPath'])
+            generatioTemplate = generatioTemplate.replace('METHOD_NAME', ', '.join(classInfo['methods']))
+            prompt = buildPrompt(classInfo['classPath'], generatioTemplate, classInfo['methods'])
+            # submit the prompt to OpenAI
+            response = getOpenAiResponse(prompt)
+            # Extract the code from the response
+            javaCode = extractCode(response)
+            # Save the code in the test file
+            writeFile(classInfo['testPath'], javaCode)
+            # Run the test
+            while optmizeTries < 3:
+                print("Classe: "+ classInfo['name'])
+                print("Optmize try: "+str(optmizeTries))
+                optmizeTries += 1
+                testcompiled, error = runTest(projectsInfos[count]['source'], classInfo['testPath'], projectsInfos[count]['gradlew'])
+                if testcompiled:
+                    break
+                optmizeTest(classInfo['testPath'], error,  projectsInfos[count]['gradlew'])
+
+        runTests(projectsInfos[count]['source'], projectsInfos[count]['gradlew'])
         count +=1
 
-    # Run all tests
-    # runTests(raiz)
 if __name__ == "__main__":
     main()
 

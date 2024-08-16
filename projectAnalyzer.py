@@ -122,7 +122,7 @@ def getProjectsInfos(filePath):
         return json.load(arquivo)
     
 def main():
-    projects = getProjectsInfos("/home/lucas/tcc/projectsInfo.json")
+    projects = getProjectsInfos("/home/lucas/tcc/projectsInfos.json")
     # json = [{"name": "nameProject", "source": "source/nameProject", "gradlew": boolean},]
     allProjectsInfo = []
     for project in projects:
