@@ -28,13 +28,16 @@ def getClass(project, dir):
     return lstInfoClass
  
 def findTestFileForClass(lstClass, dir):
-    for sourceDir, subDir, files in os.walk(dir):
-        for file in files:
-            if file.endswith(".java") and "test" in file.lower():
-                for classe in lstClass[-1]['classes']:
+
+    for classe in lstClass[-1]['classes']:
+        for sourceDir, subDir, files in os.walk(dir):
+            for file in files:
+                if file.endswith(".java") and "test" in file.lower():
                     if file.startswith(classe['name']):
                         classe['testPath'] = os.path.join(sourceDir, file)
                         break
+        
+        classe['testPath'] = classe['classPath'].replace("main", "test").replace(".java", "Test.java")
 
 def removeClassIfNotTested(lstClass):
     newLstClass = []
@@ -76,26 +79,26 @@ def extractMethodSignatures(class_list):
                 if method_signature not in method_names and len(method_signature) > 1:
                     method_names.append(method_signature)
 
-        test_pattern = re.compile(r'\b(\w+)\.(\w+)\s*\([^)]*\)(.*)')
-        with open(class_info['testPath'], 'r') as test_file:
-            test_file_lines = test_file.readlines()
-            for test_line in test_file_lines:
-                match = re.search(test_pattern, test_line)
-                if match:
-                    instance_name = match.group(1)
-                    method_name = match.group(2)
-                    complement = match.group(3)
+        # test_pattern = re.compile(r'\b(\w+)\.(\w+)\s*\([^)]*\)(.*)')
+        # with open(class_info['testPath'], 'r') as test_file:
+        #     test_file_lines = test_file.readlines()
+        #     for test_line in test_file_lines:
+        #         match = re.search(test_pattern, test_line)
+        #         if match:
+        #             instance_name = match.group(1)
+        #             method_name = match.group(2)
+        #             complement = match.group(3)
 
-                    if method_name in method_names and method_name not in class_info['methods']:
-                        class_info['methods'].append(method_name)
-                    elif complement.startswith('.'):
-                        for method in method_names:
-                            if method in complement and method not in class_info['methods']:
-                                class_info['methods'].append(method)
-                                break
+        #             if method_name in method_names and method_name not in class_info['methods']:
+        #                 class_info['methods'].append(method_name)
+        #             elif complement.startswith('.'):
+        #                 for method in method_names:
+        #                     if method in complement and method not in class_info['methods']:
+        #                         class_info['methods'].append(method)
+        #                         break
 
         
-        class_list[index]['methods'] = class_info['methods']
+        class_list[index]['methods'] = method_names
 
     return class_list
 
@@ -103,7 +106,7 @@ def randonlyPickClass(classes):
     filtersClasses = [c for c in classes if len(c['methods']) > 0]
     totalMethods = 0
     selectedClasses = []
-    while totalMethods < 20 and len(filtersClasses) > 0:
+    while totalMethods < 200 and len(filtersClasses) > 0:
         selectedClass = random.choice(filtersClasses)
         selectedClasses.append(selectedClass)
         totalMethods += len(selectedClass['methods'])
@@ -130,8 +133,8 @@ def main():
         projectList = getClass(project['name'], project['source'])
         print("findTestFileForClass")
         findTestFileForClass(projectList, project['source'])
-        print("removeClassIfNotTested")
-        projectList[-1]['classes'] = removeClassIfNotTested(projectList[-1]['classes'])
+        # print("removeClassIfNotTested")
+        # projectList[-1]['classes'] = removeClassIfNotTested(projectList[-1]['classes'])
         print("extractMethodSignatures")
         projectList[-1]['classes'] = extractMethodSignatures(projectList[-1]['classes'])
         projectList[-1]['classes'] = randonlyPickClass(projectList[-1]['classes'])

@@ -17,20 +17,32 @@ client = OpenAI(
 
 raiz = "/home/lucas/tcc"
 
-def createFile():
-    with open('arquivo.txt', 'w') as f:
-        f.write("Olá, tudo bem?")
+
+
+# def getOpenAiResponse(prompt):
+
+#     response = client.chat.completions.create(    
+#         model="gpt-3.5-turbo",
+#         messages=[
+#          {"role": "user", "content": prompt},
+#         ],
+#         )
+
+#     return response.choices[0].message.content
 
 def getOpenAiResponse(prompt):
-
     response = client.chat.completions.create(    
         model="gpt-3.5-turbo",
         messages=[
          {"role": "user", "content": prompt},
-        ],)
+        ],
+        temperature=0.7,
+        top_p=0.9,
+        frequency_penalty=0.0,
+        presence_penalty=0.0
+        )
 
     return response.choices[0].message.content
-
 
 def readFile(nome):
     with open(nome, 'r') as f:
@@ -42,11 +54,13 @@ def readJson(nome):
 
 def writeFile(fileName, content):
     try:
+        os.makedirs(os.path.dirname(fileName), exist_ok=True)
+        
         with open(fileName, 'w', encoding='utf-8') as file:
             file.write(content)
-            file.close()
     except Exception as e:
-        print("Erro: " + e)
+        print(f"Erro: {e}")
+
 
 def readClass(filename):
     result = ""
@@ -65,15 +79,12 @@ def extractCode(response_text):
 
 def runTest(projectPath, testPath, isGradlew):
     testPackage = packagePath(testPath)
-    print("Test Package: " + testPackage)
     try:
         os.chdir(projectPath)
-        print(f"Successfully changed the directory to: {os.getcwd()}")
         if(isGradlew):
-            command = ["./gradlew",  "-x", "check", "cleanTest", "test", "--tests", testPackage]
+            command = ["./gradlew",  "-x", "check", "cleanTest", "test", "--tests", f'"{testPackage}"']
         else:
             command = ["mvn", f'-Dtest={testPackage}', "test"]
-
         print("Running test: "+testPackage+ "...")
         result = subprocess.run(command, capture_output=True, text=True)
         # Print stdout and stderr for debugging
@@ -87,8 +98,9 @@ def runTest(projectPath, testPath, isGradlew):
             print("Tests failed")
             return False , result.stderr
         
-    except FileNotFoundError:
-        print(f"Error: The directory {projectPath} does not exist.")
+    except Exception as e:
+        print(result.stderr)
+        print(f"Error: {e}")
 
     finally:
         os.chdir(raiz)
@@ -106,7 +118,7 @@ def runTests(projectPath, isGradlew):
         print("Running tests...")
         result = subprocess.run(command, capture_output=True, text=True)
         if result.returncode == 0:
-            print(result.stdout)
+            # print(result.stdout)
             return True, "Tests ran successfully:\n" + result.stdout
         else:
             print(result.stderr)
@@ -114,44 +126,28 @@ def runTests(projectPath, isGradlew):
     finally:
         os.chdir(raiz)
 
-# def runTestMaven(projectPath, testPath):
-#     testPackage = packagePath(testPath)
-#     print(testPackage)
-#     try:
-#         os.chdir(projectPath)
-#         print(f"Successfully changed the directory to: {os.getcwd()}")
-#         print("Running test: "+testPackage+ "...")
-#         result = subprocess.run(command, capture_output=True, text=True)
-#         if result.returncode == 0:
-#             return True, "Tests ran successfully:\n" + result.stdout
-#         else:
-#             return False ,result.stderr
-
-#     except FileNotFoundError:
-#         print(f"Error: The directory {projectPath} does not exist.")
-    
-#     finally:
-#         os.chdir(raiz)
 
 def optmizeTest(testPath, errorMessage, isGradlew):
     optmizerTemplate = readFile('optmizerTemplate.txt')
-    if isGradlew:
-        pattern = re.compile(r"(.*?)(\* Try:)", re.DOTALL)
-        match = pattern.search(errorMessage)
-        if match:
-            error = match.group(1)
-    else:
-        error_lines = [line for line in errorMessage if '[ERROR]' in line]
-        error = '\n'.join(error_lines)
+    # if isGradlew:
+    #     pattern = re.compile(r"(.*?)(\* Try:)", re.DOTALL)
+    #     match = pattern.search(errorMessage)
+    #     if match:
+    #         error = match.group(1)
+    # else:
+    #     error_lines = [line for line in errorMessage if '[ERROR]' in line]
+    #     error = '\n'.join(error_lines)
     try:
-        print(error)
-        prompt = buildPrompt(testPath, optmizerTemplate, error)
+        prompt = buildPrompt(readClass(testPath), optmizerTemplate, errorMessage)
         # submit the prompt to OpenAI
         response = getOpenAiResponse(prompt)
+        print("RESPONSE")
+        print(response)
         # Extract the code from the response
         javaCode = extractCode(response)
         # Save the code in the test file
         writeFile(testPath, javaCode) 
+
     except Exception as e:
         print("Error: "+ e) 
 
@@ -176,46 +172,93 @@ def buildPrompt(code, template, error):
 def saveTestFile(testPath, code):
     with open(testPath, 'w') as f:
         f.write(code)
-def main():
-    packagePath("/home/lucas/tcc/reps/zaproxy/zap/src/test/java/org/zaproxy/zap/ZAPUnitTest.java")
+
+
+
+def removeTestFile(testPath):
+    """Remove the test file specified by test_path."""
+    if os.path.isfile(testPath):
+        os.remove(testPath)
+        print(f"Removed test file: {testPath}")
+    else:
+        print(f"Test file not found: {testPath}")
+
+def writeCSV(dataList, file_name):
+    try:
+        with open(file_name, mode='w', newline='', encoding='utf-8') as file:
+            # Escreve o cabeçalho
+            file.write('class,method,numTries,outputList\n')
+            
+            # Escreve cada dicionário como uma linha no CSV
+            for data in dataList:
+                output_str = ','.join(data['outputList'])
+                # Concatena os valores e adiciona uma nova linha
+                line = f"{data['class']},{data['method']},{data['numTries']},{output_str}\n"
+                file.write(line)
+        
+        print(f"Arquivo CSV '{file_name}' criado com sucesso.")
+    except Exception as e:
+        print(f"Erro ao criar o arquivo CSV: {e}")
 
 def main():
     generatioTemplate = readFile('template2.txt')
     projectsInfos = readJson('projectsInfos.json')
     classesInfo = readJson('infos.json')
+    outputTemplate = readFile('outputTemplate.txt')
     count = 0
     optmizeTries = 0
     testcompiled = False
+    dataList = []
 
     while count < len(projectsInfos):
         print(classesInfo[count]['project'])
         for classInfo in classesInfo[count]['classes']:
+
+            data = {}
+            data['class'] = classInfo['name']
+            data['method'] = len(classInfo['methods'])
+            data['numTries'] = 0
+            data['outputList'] = []
+
             print(classInfo['name'])
             optmizeTries = 0
             # Create prompt with informations of the class
             generatioTemplate = generatioTemplate.replace('CLASS_NAME', classInfo['name'])
             generatioTemplate = generatioTemplate.replace('CLASS_PATH', classInfo['classPath'])
             generatioTemplate = generatioTemplate.replace('METHOD_NAME', ', '.join(classInfo['methods']))
-            prompt = buildPrompt(classInfo['classPath'], generatioTemplate, classInfo['methods'])
+            prompt = buildPrompt(readClass(classInfo['classPath']), generatioTemplate, classInfo['methods'])
             # submit the prompt to OpenAI
             response = getOpenAiResponse(prompt)
             # Extract the code from the response
             javaCode = extractCode(response)
             # Save the code in the test file
+            print("Writing test file...")
             writeFile(classInfo['testPath'], javaCode)
+            writeFile(f"/home/lucas/tcc/responses/{classInfo['name']}{optmizeTries}.java", javaCode) 
+
             # Run the test
-            while optmizeTries < 3:
-                print("Classe: "+ classInfo['name'])
-                print("Optmize try: "+str(optmizeTries))
-                optmizeTries += 1
+            while optmizeTries <= 3:
+                print("Classe: "+ classInfo['name']+ " Optmize try: "+str(optmizeTries))
                 testcompiled, error = runTest(projectsInfos[count]['source'], classInfo['testPath'], projectsInfos[count]['gradlew'])
+                data['numTries'] = optmizeTries
                 if testcompiled:
+                    data['outputList'].append("Success")
                     break
+                errorCategorize = buildPrompt(error, outputTemplate, "")
+                data['outputList'].append(getOpenAiResponse(errorCategorize))
                 optmizeTest(classInfo['testPath'], error,  projectsInfos[count]['gradlew'])
+                optmizeTries += 1
+                writeFile(f"/home/lucas/tcc/responses/{classInfo['name']}{optmizeTries}.java", readClass(classInfo['testPath'])) 
 
-        runTests(projectsInfos[count]['source'], projectsInfos[count]['gradlew'])
+            # if optmizeTries > 3 and not testcompiled:
+            #     removeTestFile(classInfo['testPath'])
+                
+        
+            dataList.append(data)
+        
+        # runTests(projectsInfos[count]['source'], projectsInfos[count]['gradlew'])
         count +=1
-
+    writeCSV(dataList, 'metricas.csv')
 if __name__ == "__main__":
     main()
 

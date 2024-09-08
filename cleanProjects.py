@@ -28,6 +28,7 @@ with open(file_path, 'r') as file:
 for project in projects:
     source_dir = project["source"]
     os.chdir(source_dir)
-    subprocess.run(["git", "checkout", "."])
+    subprocess.run(["git", "clean", "-fd"])
+    subprocess.run(["git", "checkout", "--","."])
 
 print("Script executado com sucesso.")

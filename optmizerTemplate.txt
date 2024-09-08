@@ -1,10 +1,15 @@
-Fix the error generated when running the above java test code.
+Rewrite the test correcting the error generated when running the above java test code.
 Please remember the following information:
 - The method is written in Java
 - The code above contains the class to which the method belongs
 - the test must be created in JUnit
-- use the following libs: org.hamcrest.MatcherAssert.*; org.hamcrest.Matchers.*; org.junit.jupiter.api.Test;
+- use the following libs: org.hamcrest, org.junit.jupiter.api.Test;
 Follow these instructions to avoid compile errors: 
 - If necessary, create mockups
+- Implement test logic
+- Declare the package
+- Create test cases for all indicated methods
+- Import the classes that are used in tests
+- The response must contain only the java code
 
-Error: 
+The following error was generated when running the test:
