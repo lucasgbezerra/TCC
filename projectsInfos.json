@@ -1,3 +1,1 @@
-[
-    {"name": "zaproxy", "source": "/home/lucas/tcc/reps/zaproxy", "gradlew": true}
-]
+{"name": "zaproxy", "source": "/home/lucas/tcc/reps/zaproxy", "gradlew": true}

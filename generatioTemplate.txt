@@ -5,7 +5,8 @@ I will provide the following information:
 - The code above contains the class to which the method belongs
 - the test must be created in JUnit
 - use the following libs: org.hamcrest, org.junit.jupiter.api.Test;
-Follow these instructions to avoid compile errors: 
+Follow these instructions to avoid compile errors:
+- The name of test class should be CLASS_NAME + Test
 - If necessary, create mockups
 - Implement test logic
 - Declare the package

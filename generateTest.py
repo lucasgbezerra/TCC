@@ -4,6 +4,7 @@ import os
 import json
 import re
 import subprocess
+from time import sleep
 
 env_vars = dotenv_values(".env")
 KEY = env_vars.get("OPENAI_API_KEY")
@@ -82,7 +83,7 @@ def runTest(projectPath, testPath, isGradlew):
     try:
         os.chdir(projectPath)
         if(isGradlew):
-            command = ["./gradlew",  "-x", "check", "cleanTest", "test", "--tests", f'"{testPackage}"']
+            command = ["./gradlew",  "-x", "check", "cleanTest", "test", "--tests", testPackage]
         else:
             command = ["mvn", f'-Dtest={testPackage}', "test"]
         print("Running test: "+testPackage+ "...")
@@ -96,7 +97,9 @@ def runTest(projectPath, testPath, isGradlew):
             return True, None
         else:
             print("Tests failed")
-            return False , result.stderr
+            if "tests completed" in result.stderr:
+                return False , result.stdout
+            return False, result.stderr
         
     except Exception as e:
         print(result.stderr)
@@ -141,8 +144,6 @@ def optmizeTest(testPath, errorMessage, isGradlew):
         prompt = buildPrompt(readClass(testPath), optmizerTemplate, errorMessage)
         # submit the prompt to OpenAI
         response = getOpenAiResponse(prompt)
-        print("RESPONSE")
-        print(response)
         # Extract the code from the response
         javaCode = extractCode(response)
         # Save the code in the test file
@@ -201,60 +202,59 @@ def writeCSV(dataList, file_name):
         print(f"Erro ao criar o arquivo CSV: {e}")
 
 def main():
-    generatioTemplate = readFile('template2.txt')
-    projectsInfos = readJson('projectsInfos.json')
-    classesInfo = readJson('infos.json')
+    generatioTemplate = readFile('generatioTemplate.txt')
+    projectInfos = readJson('projectsInfos.json')
+    infos = readJson('infos.json')
     outputTemplate = readFile('outputTemplate.txt')
     count = 0
     optmizeTries = 0
     testcompiled = False
     dataList = []
 
-    while count < len(projectsInfos):
-        print(classesInfo[count]['project'])
-        for classInfo in classesInfo[count]['classes']:
+    classesInfo = infos[0]['classes']
+    for classInfo in classesInfo:
+        data = {}
+        data['class'] = classInfo['name']
+        data['method'] = len(classInfo['methods'])
+        data['numTries'] = 0
+        data['outputList'] = []
 
-            data = {}
-            data['class'] = classInfo['name']
-            data['method'] = len(classInfo['methods'])
-            data['numTries'] = 0
-            data['outputList'] = []
+        print(classInfo['name'])
+        optmizeTries = 0
+        # Create prompt with informations of the class
+        generatioTemplate = generatioTemplate.replace('CLASS_NAME', classInfo['name'])
+        generatioTemplate = generatioTemplate.replace('CLASS_PATH', classInfo['classPath'])
+        generatioTemplate = generatioTemplate.replace('METHOD_NAME', ', '.join(classInfo['methods']))
+        prompt = buildPrompt(readClass(classInfo['classPath']), generatioTemplate, classInfo['methods'])
+        # submit the prompt to OpenAI
+        response = getOpenAiResponse(prompt)
+        # Extract the code from the response
+        javaCode = extractCode(response)
+        # Save the code in the test file
+        print("Writing test file...")
+        writeFile(classInfo['testPath'], javaCode)
+        # writeFile(f"/home/lucas/tcc/responses/{classInfo['name']}{optmizeTries}.java", javaCode) 
 
-            print(classInfo['name'])
-            optmizeTries = 0
-            # Create prompt with informations of the class
-            generatioTemplate = generatioTemplate.replace('CLASS_NAME', classInfo['name'])
-            generatioTemplate = generatioTemplate.replace('CLASS_PATH', classInfo['classPath'])
-            generatioTemplate = generatioTemplate.replace('METHOD_NAME', ', '.join(classInfo['methods']))
-            prompt = buildPrompt(readClass(classInfo['classPath']), generatioTemplate, classInfo['methods'])
-            # submit the prompt to OpenAI
-            response = getOpenAiResponse(prompt)
-            # Extract the code from the response
-            javaCode = extractCode(response)
-            # Save the code in the test file
-            print("Writing test file...")
-            writeFile(classInfo['testPath'], javaCode)
-            writeFile(f"/home/lucas/tcc/responses/{classInfo['name']}{optmizeTries}.java", javaCode) 
+        # Run the test
+        while optmizeTries <= 3:
+            sleep(1)
+            print("Classe: "+ classInfo['name']+ " Optmize try: "+str(optmizeTries))
+            testcompiled, error = runTest(projectInfos['source'], classInfo['testPath'], projectInfos['gradlew'])
+            data['numTries'] = optmizeTries
+            if testcompiled:
+                data['outputList'].append("Success")
+                break
+            errorCategorize = buildPrompt(error, outputTemplate, "")
+            data['outputList'].append(getOpenAiResponse(errorCategorize))
+            optmizeTest(classInfo['testPath'], error,  projectInfos['gradlew'])
+            optmizeTries += 1
+            writeFile(f"/home/lucas/tcc/responses/{classInfo['name']}{optmizeTries}.java", readClass(classInfo['testPath'])) 
 
-            # Run the test
-            while optmizeTries <= 3:
-                print("Classe: "+ classInfo['name']+ " Optmize try: "+str(optmizeTries))
-                testcompiled, error = runTest(projectsInfos[count]['source'], classInfo['testPath'], projectsInfos[count]['gradlew'])
-                data['numTries'] = optmizeTries
-                if testcompiled:
-                    data['outputList'].append("Success")
-                    break
-                errorCategorize = buildPrompt(error, outputTemplate, "")
-                data['outputList'].append(getOpenAiResponse(errorCategorize))
-                optmizeTest(classInfo['testPath'], error,  projectsInfos[count]['gradlew'])
-                optmizeTries += 1
-                writeFile(f"/home/lucas/tcc/responses/{classInfo['name']}{optmizeTries}.java", readClass(classInfo['testPath'])) 
-
-            # if optmizeTries > 3 and not testcompiled:
-            #     removeTestFile(classInfo['testPath'])
-                
-        
-            dataList.append(data)
+        # if optmizeTries > 3 and not testcompiled:
+        #     removeTestFile(classInfo['testPath'])
+            
+    
+        dataList.append(data)
         
         # runTests(projectsInfos[count]['source'], projectsInfos[count]['gradlew'])
         count +=1
