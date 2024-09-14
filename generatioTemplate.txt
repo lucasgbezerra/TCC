@@ -1,14 +1,22 @@
-Create cases of unit test for the methods METHOD_NAME of class CLASS_NAME
-I will provide the following information:
-- The class path is: CLASS_PATH
-- The method is written in Java
-- The code above contains the class to which the method belongs
-- the test must be created in JUnit
-- use the following libs: org.hamcrest, org.junit.jupiter.api.Test;
-Follow these instructions to avoid compile errors:
-- The name of test class should be CLASS_NAME + Test
-- If necessary, create mockups
-- Implement test logic
-- Declare the package
-- Create test cases for all indicated methods
-- Import the classes that are used in tests
+Generate unit test cases for the following method(s) in JUnit 5:
+
+- Method name(s): METHOD_NAME
+- Class name: CLASS_NAME
+- Class path: CLASS_PATH
+- The class is written in Java.
+- Create the unit tests using the following libraries: org.hamcrest and org.junit.jupiter.api.Test.
+
+Follow these instructions carefully:
+1. The test class name should be TEST_NAME.
+2. If necessary, create mock objects.
+3. Implement the test logic for each method, including setup, execution, and verification of results.
+4. Use assertions to verify that the method behaves as expected.
+5. Include the correct package declaration at the top of the file.
+6. Ensure that all necessary imports for classes used in the tests are included.
+7. Each test case should be clearly named and include specific logic to test different scenarios and edge cases.
+8. Avoid generating test methods with placeholder comments. 
+9. Make sure each test has assertion.
+
+Make sure the tests are complete and avoid compile errors.
+
+Class Code:

@@ -5,6 +5,7 @@ import json
 import re
 import subprocess
 from time import sleep
+import csv
 
 env_vars = dotenv_values(".env")
 KEY = env_vars.get("OPENAI_API_KEY")
@@ -19,31 +20,28 @@ client = OpenAI(
 raiz = "/home/lucas/tcc"
 
 
-
-# def getOpenAiResponse(prompt):
-
-#     response = client.chat.completions.create(    
-#         model="gpt-3.5-turbo",
-#         messages=[
-#          {"role": "user", "content": prompt},
-#         ],
-#         )
-
-#     return response.choices[0].message.content
-
-def getOpenAiResponse(prompt):
-    response = client.chat.completions.create(    
-        model="gpt-3.5-turbo",
-        messages=[
-         {"role": "user", "content": prompt},
-        ],
-        temperature=0.7,
-        top_p=0.9,
-        frequency_penalty=0.0,
-        presence_penalty=0.0
+def getOpenAiResponse(messages, temperature=0.7, top_p=0.9, frequency_penalty=0.0, presence_penalty=0.0):
+    try:
+        response = client.chat.completions.create(    
+            model="gpt-3.5-turbo",
+            messages=messages,
+            temperature=temperature,
+            top_p=top_p,
+            frequency_penalty=frequency_penalty,
+            presence_penalty=presence_penalty
         )
 
-    return response.choices[0].message.content
+        # response = client.chat.completions.create(    
+        # model="gpt-3.5-turbo",
+        # messages=messages,
+        # )
+
+        return response.choices[0].message.content
+    
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None  # Retornar None ou outro valor padrão em caso de erro
+
 
 def readFile(nome):
     with open(nome, 'r') as f:
@@ -62,14 +60,26 @@ def writeFile(fileName, content):
     except Exception as e:
         print(f"Erro: {e}")
 
+def appendFile(fileName, content):
+    try:
+        with open(fileName, 'a', encoding='utf-8') as file:
+            file.write(content)
+    except Exception as e:
+        print(f"Erro: {e}")
 
-def readClass(filename):
-    result = ""
-    with open(filename, 'r', encoding='utf-8') as file:
-        for line in file:
-            if not line.strip().startswith(('*', '/')):
-                result += line
-    return result
+def readClass(file_path):
+    with open(file_path, 'r') as file:
+        code = file.read()
+    
+    inline_comment_pattern = r'//.*?$'
+    block_comment_pattern = r'/\*.*?\*/'
+    
+    without_block_comments = re.sub(block_comment_pattern, '', code, flags=re.DOTALL)
+    
+    without_comments = re.sub(inline_comment_pattern, '', without_block_comments, flags=re.MULTILINE)
+    
+    return without_comments
+
 
 def extractCode(response_text):
     # Expressão regular para extrair blocos de código Java
@@ -89,16 +99,16 @@ def runTest(projectPath, testPath, isGradlew):
         print("Running test: "+testPackage+ "...")
         result = subprocess.run(command, capture_output=True, text=True)
         # Print stdout and stderr for debugging
-        print("stdout:\n", result.stdout)
-        print("stderr:\n", result.stderr)
+        # print("stdout:\n", result.stdout)
+        # print("stderr:\n", result.stderr)
 
         if result.returncode == 0:
             print("Tests ran successfully")
             return True, None
         else:
             print("Tests failed")
-            if "tests completed" in result.stderr:
-                return False , result.stdout
+            # if "tests completed" in result.stderr:
+            #     return False , result.stdout
             return False, result.stderr
         
     except Exception as e:
@@ -109,45 +119,48 @@ def runTest(projectPath, testPath, isGradlew):
         os.chdir(raiz)
    
 
+# def runTests(projectPath, isGradlew):
+#     try:
+#         print("Running all tests...")
+#         os.chdir(projectPath)
+#         if isGradlew:
+#             command = ["./gradlew",  "-x", "check", "cleanTest", "test"]
+#         else:
+#             command = ["mvn", "surefire-report:report"]
+#         print("Running tests...")
+#         result = subprocess.run(command, capture_output=True, text=True)
+#         if result.returncode == 0:
+#             # print(result.stdout)
+#             return True, "Tests ran successfully:\n" + result.stdout
+#         else:
+#             print(result.stderr)
+#             return False , result.stderr
+#     finally:
+#         os.chdir(raiz)
 
-def runTests(projectPath, isGradlew):
+
+def processTest(classInfo, errorMessage=None):
     try:
-        print("Running all tests...")
-        os.chdir(projectPath)
-        if isGradlew:
-            command = ["./gradlew",  "-x", "check", "cleanTest", "test"]
+        if errorMessage:
+            print("Repairing test...")
+            prompt = buildPrompt(classPath=classInfo['classPath'], testPath=classInfo['testPath'], error=errorMessage)
+            # code = readClass(classInfo['testPath']) 
         else:
-            command = ["mvn", "surefire-report:report"]
-        print("Running tests...")
-        result = subprocess.run(command, capture_output=True, text=True)
-        if result.returncode == 0:
-            # print(result.stdout)
-            return True, "Tests ran successfully:\n" + result.stdout
-        else:
-            print(result.stderr)
-            return False , result.stderr
-    finally:
-        os.chdir(raiz)
-
-
-def optmizeTest(testPath, errorMessage, isGradlew):
-    optmizerTemplate = readFile('optmizerTemplate.txt')
-    # if isGradlew:
-    #     pattern = re.compile(r"(.*?)(\* Try:)", re.DOTALL)
-    #     match = pattern.search(errorMessage)
-    #     if match:
-    #         error = match.group(1)
-    # else:
-    #     error_lines = [line for line in errorMessage if '[ERROR]' in line]
-    #     error = '\n'.join(error_lines)
-    try:
-        prompt = buildPrompt(readClass(testPath), optmizerTemplate, errorMessage)
-        # submit the prompt to OpenAI
-        response = getOpenAiResponse(prompt)
-        # Extract the code from the response
-        javaCode = extractCode(response)
-        # Save the code in the test file
-        writeFile(testPath, javaCode) 
+            print("Generating test...")
+            prompt = buildPrompt(classPath=classInfo['classPath'], className=classInfo['name'], testName=classInfo['testName'], classMethods=classInfo['methods'])
+            # code = readClass(classInfo['classPath'])
+           
+        response = getOpenAiResponse([
+                        {"role": "user", "content": prompt}
+                    ],)
+        if response != None:
+            javaCode = extractCode(response)
+            if javaCode and javaCode.strip():
+                writeFile(classInfo['testPath'], javaCode)
+    
+            # Save the code in the test file
+            appendFile('/home/lucas/tcc/responses/prompt.txt', prompt)
+            appendFile('/home/lucas/tcc/responses/response.txt', response)
 
     except Exception as e:
         print("Error: "+ e) 
@@ -163,102 +176,154 @@ def packagePath(filepath):
 
     return package
 
-def buildPrompt(code, template, error):
-    if(len(error) > 0):
-        return f'{code}\n\n{template}\{error}'
+def buildPrompt(classPath, testPath=None, className=None, testName=None ,classMethods=None, error=None):
+
+    if error and len(error) > 0:
+        repairTemplate = readFile('repairTemplate.txt')
+        # classCode = readClass(classPath)
+        testCode = readClass(testPath)
+        repairTemplate = repairTemplate.replace('ERROR_MESSAGE', error)
+        # repairTemplate = repairTemplate.replace('CLASS_CODE', classCode)
+        repairTemplate = repairTemplate.replace('TEST_CODE', testCode)
+
+        # return f'{code}\n{repairTemplate}\n{error}'
+        return f'{repairTemplate}'
+
     else:
-        return f'{code}\n\n{template}'
+        generatioTemplate = readFile('generatioTemplate.txt')
+        generatioTemplate = generatioTemplate.replace('CLASS_NAME', className)
+        generatioTemplate = generatioTemplate.replace('TEST_NAME', testName)
+        generatioTemplate = generatioTemplate.replace('CLASS_PATH', classPath)
+        generatioTemplate = generatioTemplate.replace('METHOD_NAME', ', '.join(classMethods))
+        code = readClass(classPath)
+        return f'{generatioTemplate}\n{code}'
+        # return f'{generatioTemplate}'
 
 
-def saveTestFile(testPath, code):
-    with open(testPath, 'w') as f:
-        f.write(code)
-
-
-
-def removeTestFile(testPath):
+def removeTestFile(testPath, currentTest):
     """Remove the test file specified by test_path."""
     if os.path.isfile(testPath):
-        os.remove(testPath)
-        print(f"Removed test file: {testPath}")
+        if currentTest != "":
+            writeFile(testPath, currentTest)
+        else:
+            os.remove(testPath)
     else:
         print(f"Test file not found: {testPath}")
 
-def writeCSV(dataList, file_name):
+def writeCSV(data, file_name):
     try:
-        with open(file_name, mode='w', newline='', encoding='utf-8') as file:
-            # Escreve o cabeçalho
-            file.write('class,method,numTries,outputList\n')
+        with open(file_name, mode='a', newline='', encoding='utf-8') as file:
+            writer = csv.writer(file)
             
-            # Escreve cada dicionário como uma linha no CSV
-            for data in dataList:
-                output_str = ','.join(data['outputList'])
-                # Concatena os valores e adiciona uma nova linha
-                line = f"{data['class']},{data['method']},{data['numTries']},{output_str}\n"
-                file.write(line)
+            if data == {}:
+                writer.writerow(['class', 'numMethods', 'numTries', 'numImports', 'output0', 'output1', 'output2', 'output3'])
+            else:
+                writer.writerow([data['class'], data['numMethods'], data['numTries'], data['numImports']] + data['outputList'])
         
-        print(f"Arquivo CSV '{file_name}' criado com sucesso.")
+        print(f"Data appended to CSV '{file_name}' successfully.")
     except Exception as e:
-        print(f"Erro ao criar o arquivo CSV: {e}")
+        print(f"Error creating or appending to CSV file: {e}")
+
+def hasFile(filePath):
+    if os.path.exists(filePath):
+        return readClass(filePath)
+    return ""
+
+def countImports(filePath):
+    try:
+        with open(filePath, 'r') as file:
+            lines = file.readlines()
+        
+        importsCount = 0
+
+        for line in lines:
+            strippedLine = line.strip()
+            
+            if strippedLine.startswith('class'):
+                break
+            
+            if strippedLine.startswith('import'):
+                importsCount += 1
+        
+        return importsCount
+
+    
+    except FileNotFoundError:
+        print(f"File not found: {filePath}")
+        return 0
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return 0
+
+
+def identifyError(errorMessage):
+    print("Identifying error type...")
+    if "Compilation failed" in errorMessage or "compiler error" in errorMessage:
+        return "Compilation errors"
+    elif "Test not configured" in errorMessage or "No tests found" in errorMessage:
+        return "Test configuration errors"
+    elif "gradle configuration failed" in errorMessage or "Could not create task" in errorMessage:
+        return "Gradle configuration errors"
+    elif "RuntimeException" in errorMessage or "NullPointerException" in errorMessage:
+        return "Runtime errors"
+    else:
+        return "Unknown error type"
 
 def main():
-    generatioTemplate = readFile('generatioTemplate.txt')
-    projectInfos = readJson('projectsInfos.json')
+    projectsInfos = readJson('projectsInfos.json')
     infos = readJson('infos.json')
     outputTemplate = readFile('outputTemplate.txt')
-    count = 0
-    optmizeTries = 0
+    currentTest = ""
+    repairTries = 0
     testcompiled = False
-    dataList = []
 
+    # Open the CSV file and write the header
+    csvFileName = '2metricas7.csv'
+    writeCSV({}, csvFileName)
+
+    # Process each class
+    projectInfos = projectsInfos[0]
     classesInfo = infos[0]['classes']
+   
     for classInfo in classesInfo:
-        data = {}
-        data['class'] = classInfo['name']
-        data['method'] = len(classInfo['methods'])
-        data['numTries'] = 0
-        data['outputList'] = []
+        # Initialize data
+        data = {
+            'class': classInfo['name'],
+            'numMethods': len(classInfo['methods']),
+            'numTries': 0,
+            'numImports': countImports(classInfo['classPath']),
+            'outputList': []
+        }
 
-        print(classInfo['name'])
-        optmizeTries = 0
-        # Create prompt with informations of the class
-        generatioTemplate = generatioTemplate.replace('CLASS_NAME', classInfo['name'])
-        generatioTemplate = generatioTemplate.replace('CLASS_PATH', classInfo['classPath'])
-        generatioTemplate = generatioTemplate.replace('METHOD_NAME', ', '.join(classInfo['methods']))
-        prompt = buildPrompt(readClass(classInfo['classPath']), generatioTemplate, classInfo['methods'])
-        # submit the prompt to OpenAI
-        response = getOpenAiResponse(prompt)
-        # Extract the code from the response
-        javaCode = extractCode(response)
-        # Save the code in the test file
-        print("Writing test file...")
-        writeFile(classInfo['testPath'], javaCode)
-        # writeFile(f"/home/lucas/tcc/responses/{classInfo['name']}{optmizeTries}.java", javaCode) 
+        repairTries = 0
+        if os.path.exists(classInfo['testPath']):
+            currentTest = readClass(classInfo['testPath'])
+        processTest(classInfo)
 
         # Run the test
-        while optmizeTries <= 3:
-            sleep(1)
-            print("Classe: "+ classInfo['name']+ " Optmize try: "+str(optmizeTries))
+        while repairTries <= 3:
+            print(f"Repair try: {repairTries} Class: {classInfo['name']}")
             testcompiled, error = runTest(projectInfos['source'], classInfo['testPath'], projectInfos['gradlew'])
-            data['numTries'] = optmizeTries
+
+            data['numTries'] = repairTries
             if testcompiled:
                 data['outputList'].append("Success")
                 break
-            errorCategorize = buildPrompt(error, outputTemplate, "")
-            data['outputList'].append(getOpenAiResponse(errorCategorize))
-            optmizeTest(classInfo['testPath'], error,  projectInfos['gradlew'])
-            optmizeTries += 1
-            writeFile(f"/home/lucas/tcc/responses/{classInfo['name']}{optmizeTries}.java", readClass(classInfo['testPath'])) 
 
-        # if optmizeTries > 3 and not testcompiled:
-        #     removeTestFile(classInfo['testPath'])
-            
-    
-        dataList.append(data)
+            errorType = identifyError(error)
+            if errorType == "Unknown error type":
+                errorType = getOpenAiResponse([{"role": "user", "content": f'Error: {error}\n{outputTemplate}'}])
+            data['outputList'].append(errorType)
+
+            processTest(classInfo, error)
+            repairTries += 1
         
-        # runTests(projectsInfos[count]['source'], projectsInfos[count]['gradlew'])
-        count +=1
-    writeCSV(dataList, 'metricas.csv')
+        if not testcompiled:
+            removeTestFile(classInfo['testPath'], currentTest)
+
+        # Write data for the current class to the CSV file
+        writeCSV(data, csvFileName)
+
 if __name__ == "__main__":
     main()
 

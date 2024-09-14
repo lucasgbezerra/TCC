@@ -1,0 +1,17 @@
+Instructions for correction:
+1. Review the provided test suite written in Java, using JUnit 5.
+2. Identify the cause of the error based on the error output.
+3. Make sure all imports are done correctly and the package is declared correctly
+4. If required, create mock objects or add missing dependencies to ensure the tests run correctly.
+5. If some test cases in the suite fail, just remove them from the suite
+6. Ensure that the test suite code avoids using wildcard imports (static or non-static).
+7. Return only the corrected and updated test suite code.
+
+Below is the code of test suite. When executing the test suite, the following error output occurred.
+
+Test suite:
+TEST_CODE
+
+Error output when running the test suite:
+ERROR_MESSAGE
+

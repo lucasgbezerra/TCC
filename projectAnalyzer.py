@@ -6,6 +6,8 @@ import random
 raiz = ''
 dirMetodos = '/home/lucas/tcc/metodos'
 
+classesTeste = []
+
 def getClass(project, dir):
     lstInfoClass = []
     lstInfoClass.append({'project': project, 'classes': []})
@@ -13,17 +15,20 @@ def getClass(project, dir):
     for sourceDir, subDir, files in os.walk(dir):
         for file in files:
             if file.endswith(".java") and not "test" in file.lower() and not "test" in sourceDir.lower():
-                lstInfoClass[-1]['classes'].append({'name': '','classPath': '','testPath': '', 'methods': []})
-                lstInfoClass[-1]['classes'][count]['name'] = file.removesuffix('.java')
-                lstInfoClass[-1]['classes'][count]['classPath'] = os.path.join(sourceDir, file)
+                # Verifica se a classe é uma interface
+                filePath = os.path.join(sourceDir, file)
+                className = file.removesuffix('.java')
+                with open(filePath, 'r') as javaFile:
+                    fileContent = javaFile.read()
+                    if f"interface {className}" in fileContent:
+                        print(f"Ignoring interface: {filePath}")
+                        continue  # Ignora interfaces
+
+                lstInfoClass[-1]['classes'].append({'name': '','testName': '','classPath': '','testPath': '', 'methods': []})
+                lstInfoClass[-1]['classes'][count]['name'] = className
+                lstInfoClass[-1]['classes'][count]['classPath'] = filePath
                 count += 1
 
-        
-    # for classInfo in lstInfoClass:
-    #     javaFile = classInfo['name'] + ".java"
-    #     for sourceDir, subDir, files in os.walk(dir):
-    #         if javaFile in files:
-    #             classInfo['classPath'] = os.path.join(sourceDir, javaFile)
     
     return lstInfoClass
  
@@ -35,9 +40,13 @@ def findTestFileForClass(lstClass, dir):
                 if file.endswith(".java") and "test" in file.lower():
                     if file.startswith(classe['name']):
                         classe['testPath'] = os.path.join(sourceDir, file)
+                        classe['testName'] = file.removesuffix('.java')
+                        classesTeste.append(classe)
                         break
         
-        classe['testPath'] = classe['classPath'].replace("main", "test").replace(".java", "Test.java")
+        if classe['testPath'] == '':
+            classe['testPath'] = classe['classPath'].replace("main", "test").replace(".java", "Test.java")
+            classe['testName'] = classe['name'] + "Test"
 
 def removeClassIfNotTested(lstClass):
     newLstClass = []
@@ -67,53 +76,32 @@ def extractMethodSignatures(class_list):
             print(f"The file does not exist.")
             return
         
-        # Improve the regex
-        method_pattern = re.compile(r'(?:(?:public|private|protected|static)\s+)+[\w\<\>\[\]]*\s*(\w+)\s*\([^\)]*\)\s*[^\{}]*{')
-
         with open(class_info['classPath'], 'r') as class_file:
             class_file_lines = class_file.readlines()
+
+        # Regex pattern to extract method signatures
+        method_pattern = re.compile(r'(?:(?:public|private|protected|static)\s+)+[\w\<\>\[\]]*\s*(\w+)\s*\([^\)]*\)\s*[^\{}]*{')
+
         for line in class_file_lines:
             match = method_pattern.search(line)
             if match:
                 method_signature = match.group(1)
                 if method_signature not in method_names and len(method_signature) > 1:
                     method_names.append(method_signature)
-
-        # test_pattern = re.compile(r'\b(\w+)\.(\w+)\s*\([^)]*\)(.*)')
-        # with open(class_info['testPath'], 'r') as test_file:
-        #     test_file_lines = test_file.readlines()
-        #     for test_line in test_file_lines:
-        #         match = re.search(test_pattern, test_line)
-        #         if match:
-        #             instance_name = match.group(1)
-        #             method_name = match.group(2)
-        #             complement = match.group(3)
-
-        #             if method_name in method_names and method_name not in class_info['methods']:
-        #                 class_info['methods'].append(method_name)
-        #             elif complement.startswith('.'):
-        #                 for method in method_names:
-        #                     if method in complement and method not in class_info['methods']:
-        #                         class_info['methods'].append(method)
-        #                         break
-
         
         class_list[index]['methods'] = method_names
 
     return class_list
 
-def randonlyPickClass(classes):
-    filtersClasses = [c for c in classes if len(c['methods']) > 0]
-    totalMethods = 0
-    selectedClasses = []
-    while totalMethods < 200 and len(filtersClasses) > 0:
-        selectedClass = random.choice(filtersClasses)
-        selectedClasses.append(selectedClass)
-        totalMethods += len(selectedClass['methods'])
-        filtersClasses.remove(selectedClass)
+def selectRandomClasses(dataList, numElements=5, seed=42):
+    # Check if numElements is greater than the length of the list
+    if numElements > len(dataList):
+        raise ValueError("Number of elements to select cannot be greater than the length of the list.")
     
-    print(len(selectedClasses))
-    return selectedClasses
+    # Select random elements
+    selectedElements = random.sample(dataList, numElements)
+    
+    return selectedElements
 
 
 def saveInfo(classList, name, path):
@@ -126,18 +114,18 @@ def getProjectsInfos(filePath):
     
 def main():
     projects = getProjectsInfos("/home/lucas/tcc/projectsInfos.json")
-    # json = [{"name": "nameProject", "source": "source/nameProject", "gradlew": boolean},]
+
     allProjectsInfo = []
     for project in projects:
         projectList = []
-        projectList = getClass(project['name'], project['source'])
+        projectList = getClass(project['name'], f"{project['source']}/zap/src/main")
         print("findTestFileForClass")
         findTestFileForClass(projectList, project['source'])
         # print("removeClassIfNotTested")
         # projectList[-1]['classes'] = removeClassIfNotTested(projectList[-1]['classes'])
         print("extractMethodSignatures")
         projectList[-1]['classes'] = extractMethodSignatures(projectList[-1]['classes'])
-        projectList[-1]['classes'] = randonlyPickClass(projectList[-1]['classes'])
+        projectList[-1]['classes'] = selectRandomClasses(projectList[-1]['classes'])
         print(len(projectList[-1]['classes']))
         # for c in classList:
         #     print(c['classes'])

@@ -22,13 +22,15 @@ file_path = "/home/lucas/tcc/projectsInfos.json"
 
 # Carrega as informações do projeto do arquivo JSON
 with open(file_path, 'r') as file:
-    project = json.load(file)
+    projects = json.load(file)
 
 # Itera sobre cada projeto e executa `git checkout .` no diretório de origem
-# for project in projects:
-source_dir = project["source"]
-os.chdir(source_dir)
-subprocess.run(["git", "clean", "-fd"])
-subprocess.run(["git", "checkout", "--","."])
+subprocess.run(["rm", "-rf", "/home/lucas/tcc/responses/prompt.txt", "/home/lucas/tcc/responses/response.txt"])
+for project in projects:
 
-print("Script executado com sucesso.")
+    source_dir = project["source"]
+    os.chdir(source_dir)
+    subprocess.run(["git", "clean", "-fd"])
+    subprocess.run(["git", "checkout", "--","."])
+
+    print("Script executado com sucesso.")

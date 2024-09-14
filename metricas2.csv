@@ -1,0 +1,6 @@
+class,method,numTries,output0,output1,output2,output3
+HttpResponseBody,5,3,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+SiteNodeStringComparator,1,3,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+ApiResponseElement,5,2,Compilation errors,Test failures,Success
+ProxyThread,20,3,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+Spider,31,3,Compilation errors,Compilation errors,Compilation errors,Compilation errors
