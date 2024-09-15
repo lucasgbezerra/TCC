@@ -1,6 +1,0 @@
-class,numMethods,numTries,numImports,output0,output1,output2,output3
-PopupFlagCustomPageIndicatorMenu,6,3,11,Compilation errors,Compilation errors,Compilation errors,Compilation errors
-ExtensionLoader,73,3,54,Compilation errors,Compilation errors,Compilation errors,Compilation errors
-EncodingUtils,1,0,3,Success
-HttpPanelParamTableModel,12,3,9,Test failures,Test failures,Compilation errors,Compilation errors
-UrlPatternScanFilter,2,3,5,Compilation errors,Compilation errors,Compilation errors,Compilation errors

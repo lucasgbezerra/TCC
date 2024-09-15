@@ -37,12 +37,11 @@ def findTestFileForClass(lstClass, dir):
     for classe in lstClass[-1]['classes']:
         for sourceDir, subDir, files in os.walk(dir):
             for file in files:
-                if file.endswith(".java") and "test" in file.lower():
-                    if file.startswith(classe['name']):
-                        classe['testPath'] = os.path.join(sourceDir, file)
-                        classe['testName'] = file.removesuffix('.java')
-                        classesTeste.append(classe)
-                        break
+                if file.lower() == f"{classe['name']}test.java".lower() or file.lower() == f"{classe['name']}unittest.java".lower():
+                    classe['testPath'] = os.path.join(sourceDir, file)
+                    classe['testName'] = file.removesuffix('.java')
+                    classesTeste.append(classe)
+                    break
         
         if classe['testPath'] == '':
             classe['testPath'] = classe['classPath'].replace("main", "test").replace(".java", "Test.java")
@@ -80,7 +79,7 @@ def extractMethodSignatures(class_list):
             class_file_lines = class_file.readlines()
 
         # Regex pattern to extract method signatures
-        method_pattern = re.compile(r'(?:(?:public|private|protected|static)\s+)+[\w\<\>\[\]]*\s*(\w+)\s*\([^\)]*\)\s*[^\{}]*{')
+        method_pattern = re.compile(r'(?:(?:public|protected)\s+)+[\w\<\>\[\]]*\s*(\w+)\s*\([^\)]*\)\s*[^\{}]*{')
 
         for line in class_file_lines:
             match = method_pattern.search(line)
@@ -93,15 +92,17 @@ def extractMethodSignatures(class_list):
 
     return class_list
 
-def selectRandomClasses(dataList, numElements=5, seed=42):
+def selectRandomClasses(classesList, numClasses=200, seed=42):
+
+    classesWithMethods = [c for c in classesList if len(c['methods']) > 0]
     # Check if numElements is greater than the length of the list
-    if numElements > len(dataList):
+    if numClasses > len(classesWithMethods):
         raise ValueError("Number of elements to select cannot be greater than the length of the list.")
     
     # Select random elements
-    selectedElements = random.sample(dataList, numElements)
+    selectedClasses = random.sample(classesWithMethods, numClasses)
     
-    return selectedElements
+    return selectedClasses
 
 
 def saveInfo(classList, name, path):
@@ -111,7 +112,8 @@ def saveInfo(classList, name, path):
 def getProjectsInfos(filePath):
     with open(filePath, 'r') as arquivo:
         return json.load(arquivo)
-    
+
+
 def main():
     projects = getProjectsInfos("/home/lucas/tcc/projectsInfos.json")
 
@@ -119,6 +121,7 @@ def main():
     for project in projects:
         projectList = []
         projectList = getClass(project['name'], f"{project['source']}/zap/src/main")
+        # projectList = getProjectsInfos("/home/lucas/tcc/teste.json")
         print("findTestFileForClass")
         findTestFileForClass(projectList, project['source'])
         # print("removeClassIfNotTested")

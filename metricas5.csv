@@ -1,6 +1,0 @@
-class,method,numTries,outputList
-HttpResponseBody,5,3,Compilation errors,Compilation errors,Compilation errors,Compilation errors
-SiteNodeStringComparator,1,0,Success
-ApiResponseElement,5,3,Test failures,Compilation errors,Compilation errors,Compilation errors
-ProxyThread,20,3,Compilation errors,Compilation errors,Compilation errors,Compilation errors
-Spider,31,3,Compilation errors,Compilation errors,Compilation errors,Compilation errors

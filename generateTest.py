@@ -6,6 +6,7 @@ import re
 import subprocess
 from time import sleep
 import csv
+import tiktoken
 
 env_vars = dotenv_values(".env")
 KEY = env_vars.get("OPENAI_API_KEY")
@@ -16,25 +17,26 @@ client = OpenAI(
     project=PROJECT_ID,
 )
 
+MAX_TOKENS = 16385 # Token limit for GPT-3.5-turbo
 
 raiz = "/home/lucas/tcc"
 
 
 def getOpenAiResponse(messages, temperature=0.7, top_p=0.9, frequency_penalty=0.0, presence_penalty=0.0):
     try:
-        response = client.chat.completions.create(    
-            model="gpt-3.5-turbo",
-            messages=messages,
-            temperature=temperature,
-            top_p=top_p,
-            frequency_penalty=frequency_penalty,
-            presence_penalty=presence_penalty
-        )
-
         # response = client.chat.completions.create(    
-        # model="gpt-3.5-turbo",
-        # messages=messages,
+        #     model="gpt-3.5-turbo",
+        #     messages=messages,
+        #     temperature=temperature,
+        #     top_p=top_p,
+        #     frequency_penalty=frequency_penalty,
+        #     presence_penalty=presence_penalty
         # )
+
+        response = client.chat.completions.create(    
+        model="gpt-3.5-turbo",
+        messages=messages,
+        )
 
         return response.choices[0].message.content
     
@@ -67,18 +69,42 @@ def appendFile(fileName, content):
     except Exception as e:
         print(f"Erro: {e}")
 
-def readClass(file_path):
-    with open(file_path, 'r') as file:
-        code = file.read()
-    
-    inline_comment_pattern = r'//.*?$'
-    block_comment_pattern = r'/\*.*?\*/'
-    
-    without_block_comments = re.sub(block_comment_pattern, '', code, flags=re.DOTALL)
-    
-    without_comments = re.sub(inline_comment_pattern, '', without_block_comments, flags=re.MULTILINE)
-    
-    return without_comments
+def readClass(path):
+    print(f"Reading class...")
+    with open(path, 'r') as file:
+        lines = file.readlines()
+
+    new_lines = []
+    in_block_comment = False
+
+    for line in lines:
+        stripped_line = line.strip()
+
+        # Verifica se é uma linha de código válida (não comentário)
+        if stripped_line.startswith(("package", "import", "public")):
+            # A partir daqui, todas as linhas são mantidas
+            new_lines.append(line)
+            new_lines.extend(lines[lines.index(line) + 1:])
+            break
+
+        # Detecta início de um comentário de bloco
+        if stripped_line.startswith("/*"):
+            in_block_comment = True
+
+        # Detecta fim de um comentário de bloco
+        if in_block_comment and stripped_line.endswith("*/"):
+            in_block_comment = False
+            continue  # Pula essa linha de comentário
+
+        # Pula linha se estiver em um bloco de comentário
+        if in_block_comment:
+            continue
+
+        # Pula comentários de linha
+        if stripped_line.startswith("//"):
+            continue
+
+    return "".join(new_lines)
 
 
 def extractCode(response_text):
@@ -86,6 +112,7 @@ def extractCode(response_text):
     java_code_pattern = re.compile(r'```java(.*?)```', re.DOTALL)
     java_code_blocks = java_code_pattern.findall(response_text)
     return "\n\n".join(java_code_blocks)
+
 
 
 def runTest(projectPath, testPath, isGradlew):
@@ -106,7 +133,7 @@ def runTest(projectPath, testPath, isGradlew):
             print("Tests ran successfully")
             return True, None
         else:
-            print("Tests failed")
+            print("Test Failed")
             # if "tests completed" in result.stderr:
             #     return False , result.stdout
             return False, result.stderr
@@ -138,30 +165,39 @@ def runTest(projectPath, testPath, isGradlew):
 #     finally:
 #         os.chdir(raiz)
 
+def minTokensGPT35(prompt):
+    encoder = tiktoken.encoding_for_model("gpt-3.5-turbo")
+    
+    tokens = encoder.encode(prompt)
+    
+    return len(tokens) < MAX_TOKENS
 
 def processTest(classInfo, errorMessage=None):
     try:
         if errorMessage:
-            print("Repairing test...")
+            print("Repairing test " + classInfo['testName'] + "...")
             prompt = buildPrompt(classPath=classInfo['classPath'], testPath=classInfo['testPath'], error=errorMessage)
             # code = readClass(classInfo['testPath']) 
         else:
-            print("Generating test...")
-            prompt = buildPrompt(classPath=classInfo['classPath'], className=classInfo['name'], testName=classInfo['testName'], classMethods=classInfo['methods'])
+            print("Generating test " + classInfo['testName'] + "...")
+            prompt = buildPrompt(classPath=classInfo['classPath'], testPath=classInfo['testPath'], className=classInfo['name'], testName=classInfo['testName'], classMethods=classInfo['methods'])
             # code = readClass(classInfo['classPath'])
-           
-        response = getOpenAiResponse([
-                        {"role": "user", "content": prompt}
-                    ],)
-        if response != None:
+        
+        if minTokensGPT35(prompt):
+            response = getOpenAiResponse([
+                            {"role": "user", "content": prompt}
+                        ],)
             javaCode = extractCode(response)
+            if response == None or javaCode == "":
+                return False
             if javaCode and javaCode.strip():
                 writeFile(classInfo['testPath'], javaCode)
-    
+
             # Save the code in the test file
             appendFile('/home/lucas/tcc/responses/prompt.txt', prompt)
-            appendFile('/home/lucas/tcc/responses/response.txt', response)
-
+            writeFile(f"/home/lucas/tcc/responses/{classInfo['name']}.java", javaCode)
+            return True
+        return False
     except Exception as e:
         print("Error: "+ e) 
 
@@ -180,13 +216,10 @@ def buildPrompt(classPath, testPath=None, className=None, testName=None ,classMe
 
     if error and len(error) > 0:
         repairTemplate = readFile('repairTemplate.txt')
-        # classCode = readClass(classPath)
         testCode = readClass(testPath)
         repairTemplate = repairTemplate.replace('ERROR_MESSAGE', error)
-        # repairTemplate = repairTemplate.replace('CLASS_CODE', classCode)
         repairTemplate = repairTemplate.replace('TEST_CODE', testCode)
 
-        # return f'{code}\n{repairTemplate}\n{error}'
         return f'{repairTemplate}'
 
     else:
@@ -195,17 +228,20 @@ def buildPrompt(classPath, testPath=None, className=None, testName=None ,classMe
         generatioTemplate = generatioTemplate.replace('TEST_NAME', testName)
         generatioTemplate = generatioTemplate.replace('CLASS_PATH', classPath)
         generatioTemplate = generatioTemplate.replace('METHOD_NAME', ', '.join(classMethods))
+        generatioTemplate = generatioTemplate.replace('TEST_PATH', testPath)
+
         code = readClass(classPath)
         return f'{generatioTemplate}\n{code}'
-        # return f'{generatioTemplate}'
 
 
 def removeTestFile(testPath, currentTest):
     """Remove the test file specified by test_path."""
     if os.path.isfile(testPath):
         if currentTest != "":
+            print("Restoring original test file: "+ testPath)
             writeFile(testPath, currentTest)
         else:
+            print("Deleting test file "+ testPath)
             os.remove(testPath)
     else:
         print(f"Test file not found: {testPath}")
@@ -273,12 +309,11 @@ def main():
     projectsInfos = readJson('projectsInfos.json')
     infos = readJson('infos.json')
     outputTemplate = readFile('outputTemplate.txt')
-    currentTest = ""
     repairTries = 0
     testcompiled = False
-
+    
     # Open the CSV file and write the header
-    csvFileName = '2metricas7.csv'
+    csvFileName = 'metricas-zaproxy.csv'
     writeCSV({}, csvFileName)
 
     # Process each class
@@ -287,6 +322,7 @@ def main():
    
     for classInfo in classesInfo:
         # Initialize data
+        print(f"==> {classesInfo.index(classInfo)}")
         data = {
             'class': classInfo['name'],
             'numMethods': len(classInfo['methods']),
@@ -294,15 +330,20 @@ def main():
             'numImports': countImports(classInfo['classPath']),
             'outputList': []
         }
-
+        testCreated = False
+        currentTest = ""
         repairTries = 0
         if os.path.exists(classInfo['testPath']):
             currentTest = readClass(classInfo['testPath'])
-        processTest(classInfo)
+        testCreated = processTest(classInfo)
 
+        if not testCreated:
+            print(f"Test not created for class: {classInfo['name']}")
+            writeCSV(data, csvFileName)
+            continue
+        
         # Run the test
         while repairTries <= 3:
-            print(f"Repair try: {repairTries} Class: {classInfo['name']}")
             testcompiled, error = runTest(projectInfos['source'], classInfo['testPath'], projectInfos['gradlew'])
 
             data['numTries'] = repairTries
@@ -314,11 +355,12 @@ def main():
             if errorType == "Unknown error type":
                 errorType = getOpenAiResponse([{"role": "user", "content": f'Error: {error}\n{outputTemplate}'}])
             data['outputList'].append(errorType)
-
-            processTest(classInfo, error)
+            
+            if repairTries < 3:
+                processTest(classInfo, error)
             repairTries += 1
         
-        if not testcompiled:
+        if data['outputList'][-1] != "Success" and data['outputList'][-1] != "Test failures":
             removeTestFile(classInfo['testPath'], currentTest)
 
         # Write data for the current class to the CSV file
