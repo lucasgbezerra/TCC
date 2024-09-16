@@ -3,72 +3,58 @@ import os
 import json
 import random
 
-raiz = ''
-dirMetodos = '/home/lucas/tcc/metodos'
 
 classesTeste = []
 
-def getClass(project, dir):
+def getClass(dir):
     lstInfoClass = []
-    lstInfoClass.append({'project': project, 'classes': []})
-    count = 0
+
     for sourceDir, subDir, files in os.walk(dir):
         for file in files:
             if file.endswith(".java") and not "test" in file.lower() and not "test" in sourceDir.lower():
-                # Verifica se a classe é uma interface
                 filePath = os.path.join(sourceDir, file)
                 className = file.removesuffix('.java')
                 with open(filePath, 'r') as javaFile:
                     fileContent = javaFile.read()
                     if f"interface {className}" in fileContent:
-                        print(f"Ignoring interface: {filePath}")
                         continue  # Ignora interfaces
 
-                lstInfoClass[-1]['classes'].append({'name': '','testName': '','classPath': '','testPath': '', 'methods': []})
-                lstInfoClass[-1]['classes'][count]['name'] = className
-                lstInfoClass[-1]['classes'][count]['classPath'] = filePath
-                count += 1
+                lstInfoClass.append({'name': className,'testName': '','classPath': filePath,'testPath': '', 'methods': []})
+
+
 
     
     return lstInfoClass
  
 def findTestFileForClass(lstClass, dir):
-
-    for classe in lstClass[-1]['classes']:
-        for sourceDir, subDir, files in os.walk(dir):
+    print("findTestFileForClass")
+    
+    for classe in lstClass:
+        for sourceDir, subDirs, files in os.walk(dir):
             for file in files:
                 if file.lower() == f"{classe['name']}test.java".lower() or file.lower() == f"{classe['name']}unittest.java".lower():
                     classe['testPath'] = os.path.join(sourceDir, file)
                     classe['testName'] = file.removesuffix('.java')
-                    classesTeste.append(classe)
-                    break
-        
-        if classe['testPath'] == '':
+                    break  
+
+            if classe['testPath']:
+                break
+
+        if not classe['testPath']:
             classe['testPath'] = classe['classPath'].replace("main", "test").replace(".java", "Test.java")
             classe['testName'] = classe['name'] + "Test"
 
 def removeClassIfNotTested(lstClass):
     newLstClass = []
-    # newLstClass.append({'name': '','classPath': '','testePath': '', 'methods': []})
     for c in lstClass:
         if c['testPath'] != '' and c['classPath'] != '':
             newLstClass.append(c)
-        # if len(newLstClass) == 10:
-        #     break
 
     return newLstClass
 
-def createFile(nome, conteudo,extensao, dir, subDir=""):
-    dir = os.path.join(dir, f"{dir}/{subDir}")
-
-    if not os.path.exists(dir):
-        os.makedirs(dir)
-    arquivoMetodo = os.path.join(dir, f"{nome}.{extensao}")
-    with open(arquivoMetodo, 'a') as arquivoSaida:
-        arquivoSaida.write(conteudo)
-        arquivoSaida.write("\n")
 
 def extractMethodSignatures(class_list):
+    print("extractMethodSignatures")
     for index, class_info in enumerate(class_list, start=0):
         method_names = []
         if not os.path.exists(class_info['classPath']):
@@ -78,7 +64,6 @@ def extractMethodSignatures(class_list):
         with open(class_info['classPath'], 'r') as class_file:
             class_file_lines = class_file.readlines()
 
-        # Regex pattern to extract method signatures
         method_pattern = re.compile(r'(?:(?:public|protected)\s+)+[\w\<\>\[\]]*\s*(\w+)\s*\([^\)]*\)\s*[^\{}]*{')
 
         for line in class_file_lines:
@@ -92,22 +77,28 @@ def extractMethodSignatures(class_list):
 
     return class_list
 
-def selectRandomClasses(classesList, numClasses=200, seed=42):
+def selectRandomClasses(classesList, numClasses=5, seed=42):
 
     classesWithMethods = [c for c in classesList if len(c['methods']) > 0]
-    # Check if numElements is greater than the length of the list
+
     if numClasses > len(classesWithMethods):
         raise ValueError("Number of elements to select cannot be greater than the length of the list.")
     
-    # Select random elements
     selectedClasses = random.sample(classesWithMethods, numClasses)
     
     return selectedClasses
 
 
 def saveInfo(classList, name, path):
-    jsonData = json.dumps(classList)
-    createFile(name, jsonData, "json", path)
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+    file_path = os.path.join(path, f"{name}.json")
+
+    jsonData = json.dumps(classList, indent=4)
+
+    with open(file_path, 'w') as json_file:
+        json_file.write(jsonData)
 
 def getProjectsInfos(filePath):
     with open(filePath, 'r') as arquivo:
@@ -115,27 +106,20 @@ def getProjectsInfos(filePath):
 
 
 def main():
-    projects = getProjectsInfos("/home/lucas/tcc/projectsInfos.json")
+    projects = getProjectsInfos("arquivos_de_configuracao/projectsInfos.json")
 
-    allProjectsInfo = []
+    
     for project in projects:
-        projectList = []
-        projectList = getClass(project['name'], f"{project['source']}/zap/src/main")
-        # projectList = getProjectsInfos("/home/lucas/tcc/teste.json")
-        print("findTestFileForClass")
-        findTestFileForClass(projectList, project['source'])
-        # print("removeClassIfNotTested")
-        # projectList[-1]['classes'] = removeClassIfNotTested(projectList[-1]['classes'])
-        print("extractMethodSignatures")
-        projectList[-1]['classes'] = extractMethodSignatures(projectList[-1]['classes'])
-        projectList[-1]['classes'] = selectRandomClasses(projectList[-1]['classes'])
-        print(len(projectList[-1]['classes']))
-        # for c in classList:
-        #     print(c['classes'])
-        #     print(c['project'])
-        # print(len(classList))
-        allProjectsInfo.append(projectList[-1])
-    saveInfo(allProjectsInfo, "infos", "/home/lucas/tcc/")
+        projectClasses = {'project': project['name'], 'classes': []}
+        projectClasses["classes"] = getClass(f"{project['source']}")
+        
+        findTestFileForClass(projectClasses['classes'], project['source'])
+        projectClasses['classes'] = extractMethodSignatures(projectClasses['classes'])
+        projectClasses['classes'] = selectRandomClasses(projectClasses['classes'])
+        print(len(projectClasses['classes']))
+
+        
+        saveInfo(projectClasses, f"{project['name']}-info", "./arquivos_de_configuracao/")
 
 
 if __name__ == "__main__":

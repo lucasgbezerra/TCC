@@ -1,0 +1,101 @@
+{
+    "project": "zaproxy",
+    "classes": [
+        {
+            "name": "VariantURLQuery",
+            "testName": "VariantURLQueryTest",
+            "classPath": "/home/lucas/tcc/reps/zaproxy/zap/src/main/java/org/parosproxy/paros/core/scanner/VariantURLQuery.java",
+            "testPath": "/home/lucas/tcc/reps/zaproxy/zap/src/test/java/org/parosproxy/paros/core/scanner/VariantURLQueryTest.java",
+            "methods": [
+                "getShortName",
+                "getEscapedValue",
+                "getUnescapedValue",
+                "setMessage",
+                "buildMessage"
+            ]
+        },
+        {
+            "name": "OptionsParamCheckForUpdates",
+            "testName": "OptionsParamCheckForUpdatesUnitTest",
+            "classPath": "/home/lucas/tcc/reps/zaproxy/zap/src/main/java/org/zaproxy/zap/extension/autoupdate/OptionsParamCheckForUpdates.java",
+            "testPath": "/home/lucas/tcc/reps/zaproxy/zap/src/test/java/org/zaproxy/zap/extension/autoupdate/OptionsParamCheckForUpdatesUnitTest.java",
+            "methods": [
+                "parse",
+                "setCheckOnStart",
+                "isCheckOnStart",
+                "checkOnStart",
+                "getDayLastChecked",
+                "getDayLastInstallWarned",
+                "getDayLastUpdateWarned",
+                "setDayLastInstallWarned",
+                "setDayLastUpdateWarned",
+                "isDownloadNewRelease",
+                "setDownloadNewRelease",
+                "isCheckAddonUpdates",
+                "setCheckAddonUpdates",
+                "isInstallAddonUpdates",
+                "setInstallAddonUpdates",
+                "isInstallScannerRules",
+                "setInstallScannerRules",
+                "isReportReleaseAddons",
+                "setReportReleaseAddons",
+                "isReportBetaAddons",
+                "setReportBetaAddons",
+                "isReportAlphaAddons",
+                "setReportAlphaAddons",
+                "getAddonDirectories",
+                "setAddonDirectories",
+                "getDownloadDirectory",
+                "setDownloadDirectory"
+            ]
+        },
+        {
+            "name": "ScanProgressItem",
+            "testName": "ScanProgressItemTest",
+            "classPath": "/home/lucas/tcc/reps/zaproxy/zap/src/main/java/org/zaproxy/zap/extension/ascan/ScanProgressItem.java",
+            "testPath": "/home/lucas/tcc/reps/zaproxy/zap/src/test/java/org/zaproxy/zap/extension/ascan/ScanProgressItemTest.java",
+            "methods": [
+                "getNameLabel",
+                "getAttackStrenghtLabel",
+                "getAttackStrengthLabel",
+                "getStatusLabel",
+                "getElapsedTime",
+                "getProgressPercentage",
+                "isRunning",
+                "isCompleted",
+                "isSkipped",
+                "getSkippedReason",
+                "skip",
+                "getPlugin",
+                "getReqCount",
+                "toString"
+            ]
+        },
+        {
+            "name": "PolicyManagerDialog",
+            "testName": "PolicyManagerDialogTest",
+            "classPath": "/home/lucas/tcc/reps/zaproxy/zap/src/main/java/org/zaproxy/zap/extension/ascan/PolicyManagerDialog.java",
+            "testPath": "/home/lucas/tcc/reps/zaproxy/zap/src/test/java/org/zaproxy/zap/extension/ascan/PolicyManagerDialogTest.java",
+            "methods": [
+                "init",
+                "hasCancelSaveButtons",
+                "getHelpIndex",
+                "actionPerformed",
+                "save",
+                "validateFields",
+                "mousePressed",
+                "valueChanged",
+                "policyNamesChanged"
+            ]
+        },
+        {
+            "name": "ExtensionFactory",
+            "testName": "ExtensionFactoryUnitTest",
+            "classPath": "/home/lucas/tcc/reps/zaproxy/zap/src/main/java/org/zaproxy/zap/control/ExtensionFactory.java",
+            "testPath": "/home/lucas/tcc/reps/zaproxy/zap/src/test/java/org/zaproxy/zap/control/ExtensionFactoryUnitTest.java",
+            "methods": [
+                "compare"
+            ]
+        }
+    ]
+}

@@ -1,0 +1,201 @@
+class,numMethods,numTries,numImports,output0,output1,output2,output3
+StructuralNodeModifier,7,3,3,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+MethodScanFilter,2,3,4,Test failures,Compilation errors,Compilation errors,Compilation errors
+ZapNumberSpinner,9,0,14,Success
+SummaryAndConfigPanel,2,3,8,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+SocksProxy,8,2,3,Compilation errors,Compilation errors,Success
+NodeJSAPIGenerator,1,3,15,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+OptionsProxiesTableModel,8,3,4,Compilation errors,Compilation errors,Compilation errors,Test failures
+ZapTextField,4,3,4,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+MultipartFormParameter,6,0,0,Success
+OverlayIcon,1,3,5,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+DatabaseParam,13,3,1,Compilation errors,Test failures,Test failures,Test failures
+SearchPanel,19,1,29,Compilation errors,Success
+HistoryReferenceEventPublisher,1,3,2,Test failures,Test failures,Test failures,Test failures
+DownloadManager,6,3,11,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+ScannerParam,51,3,11,Test failures,Test failures,Test failures,Test failures
+Event,7,3,4,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+HttpOutputStream,3,3,3,Compilation errors,Compilation errors,Compilation errors,Test failures
+TechSet,11,3,3,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+KeyboardShortcutTableModel,8,3,4,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+ResponseHeaderByteHttpPanelViewModel,2,3,7,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+MessageLocationProducerFocusListenerAdapter,5,3,4,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+DefaultParseFilter,3,3,6,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+ComboBoxElement,3,3,1,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+FilenameExtensionFilter,1,0,3,Success
+PopupMenuActiveScanNode,4,3,7,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+PopupMenuSitesRefresh,3,1,8,Compilation errors,Success
+ContextAuthenticationPanel,21,3,50,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+HeadlessBootstrap,3,3,13,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+ParamAddinMagic,3,0,0,Success
+DefaultSingleHttpMessageContainer,2,0,2,Success
+HttpResponseBodyPanelSyntaxHighlightTextView,5,3,14,Test failures,Test failures,Test failures,Test failures
+AuthenticationHelper,6,3,25,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+PopupExcludeFromProxyMenu,5,3,14,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+PythonAPIGenerator,1,3,17,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+HttpMessageLocationsPanel,4,3,13,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+AbstractScanToolbarStatusPanel,15,3,25,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+Statistics,7,3,5,Test failures,Test failures,Compilation errors,Compilation errors
+StructuralNodeModifiersTableModel,12,3,5,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+HttpResponseHeader,18,3,11,Test failures,Test failures,Test failures,Test failures
+ResponseHeaderStringHttpPanelViewModel,2,3,7,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+PopupContextMenuItemHolder,3,3,11,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+OptionsKeyboardShortcutPanel,10,3,19,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+AbstractMultipleOptionsBaseTablePanel,10,0,16,Success
+TableFilterPanel,4,3,13,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+HttpStatusCodeScanFilter,2,3,4,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+SqlTableTag,4,3,9,Compilation errors,Test failures,Compilation errors,Compilation errors
+HttpRequestHeader,23,3,15,Compilation errors,Test failures,Test failures,Test failures
+TextFieldSearch,2,3,4,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+ProxiesParam,11,1,9,Compilation errors,Success
+FilterMessageTableModel,5,3,4,Test failures,Test failures,Test failures,Test failures
+ActiveScanController,19,3,22,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+TableCellElement,5,0,1,Success
+HttpResponseAllPanelTextView,3,3,9,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+CategoryTableModel,8,3,13,Compilation errors,Compilation errors,Compilation errors,Test failures
+OptionsAntiCsrfTableModel,8,3,4,Compilation errors,Compilation errors,Test failures,Test failures
+BasicOnlineContentViewerUI,1,3,10,Compilation errors,Compilation errors,Compilation errors,Test failures
+PopupMenuUnsetActiveSession,4,3,3,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+RecordParam,12,0,0,Success
+MessageLocationTableEntry,8,3,1,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+AbstractFormDialog,11,3,23,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+InMemoryStats,8,3,8,Test failures,Test failures,Test failures,Test failures
+RecordAlert,42,0,0,Success
+ResponseBodyStringHttpPanelViewModel,2,3,1,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+FilteredZapTextField,1,3,1,Compilation errors,Compilation errors,Compilation errors,Success
+SpiderAPI,3,3,38,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+KeyboardAPI,4,3,13,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+PopupMenuItemCopySessionToken,4,3,8,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+ProxyDialog,3,3,12,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+PostBasedAuthenticationMethodType,32,3,66,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+ExtensionAutoUpdate,40,3,66,Test failures,Test failures,Test failures,Success
+RequestBodyStringHttpPanelViewModel,2,3,1,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+RequestAllComponent,28,3,22,Compilation errors,Test failures,Test failures,Compilation errors
+class,numMethods,numTries,numImports,output0,output1,output2,output3
+class,numMethods,numTries,numImports,output0,output1,output2,output3
+SpiderRedirectParser,2,3,4,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+ExtensionState,8,3,7,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+FilterResult,3,1,0,Compilation errors,Success
+BaseContextScannerThread,6,3,3,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+HttpPanelSender,11,3,35,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+ParamsTableModel,10,3,6,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+AbstractPanel,20,3,8,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+VariantAbstractQuery,4,3,11,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+PassiveScanData,13,3,17,Compilation errors,Compilation errors,Test failures,Test failures
+DefaultSelectableHttpMessagesContainer,5,3,5,Compilation errors,Compilation errors,Test failures,Test failures
+PopupMenuOpenUrlInBrowser,4,3,8,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+HttpResponseAllPanelSyntaxHighlightTextView,5,3,15,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+DomainMatcher,5,3,2,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+HttpRequestBodyPanelSyntaxHighlightTextView,18,3,30,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+ExtensionHttpPanelRequestFormTableView,13,3,13,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+PopupMenuSetActiveSession,4,3,3,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+TabbedPaneSearch,1,2,3,Compilation errors,Compilation errors,Success
+SpiderThread,26,3,26,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+ExtensionHttpPanelRequestQueryCookieTableView,13,3,13,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+ExtensionLog4j,11,3,22,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+I18N,10,3,18,Compilation errors,Compilation errors,Test failures,Test failures
+ProxiesParamProxy,12,2,1,Compilation errors,Compilation errors,Success
+AbstractMultipleOptionsTableModel,2,3,2,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+AbstractParamContainerPanel,22,3,47,Test failures,Test failures,Test failures,Test failures
+HighlighterResult,2,2,1,Compilation errors,Compilation errors,Success
+SpiderSVNEntriesParser,2,3,24,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+ZapNTLMScheme,8,2,7,Compilation errors,Compilation errors,Success
+HttpBreakpointMessage,17,2,9,Compilation errors,Compilation errors,Success
+TabbedPanel,3,3,4,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+OptionsConnectionPanel,6,3,12,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+OptionsParamApi,36,3,17,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+DotNetAPIGenerator,1,3,12,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+SearchResult,11,3,5,Compilation errors,Compilation errors,Test failures,Test failures
+DateFormatStringValue,1,0,4,Success
+ViewMenu,5,3,12,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+DialogEditRuleConfig,5,3,8,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+HttpPanelHexView,16,3,12,Compilation errors,Test failures,Compilation errors,Compilation errors
+HttpSenderAuthHeaderListener,3,3,6,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+WwwFormTokenMaker,4,1,3,Compilation errors,Success
+ApiImplementor,27,3,15,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+UsernamePasswordAuthenticationCredentials,9,3,22,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+IllegalContextNameException,1,0,0,Success
+RustAPIGenerator,1,3,13,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+SiteNode,33,3,19,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+HttpMessageCachedData,15,3,3,Compilation errors,Test failures,Test failures,Test failures
+PhpAPIGenerator,2,1,14,Compilation errors,Success
+ExtensionPopupMenuItem,19,3,7,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+HighlightedComponent,1,0,2,Success
+ExtensionAdaptor,40,3,11,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+OptionsGlobalExcludeURLPanel,6,3,11,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+PopupMenuActiveScanScope,3,3,6,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+ExtensionBreak,34,3,37,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+StandardParameterParser,17,3,22,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+ZapXmlConfiguration,7,3,14,Compilation errors,Compilation errors,Test failures,Test failures
+ParamsPanel,9,3,22,Test failures,Test failures,Test failures,Test failures
+SpiderEventPublisher,1,3,4,Compilation errors,Compilation errors,Test failures,Compilation errors
+OptionsHttpSessionsTableModel,9,3,4,Test failures,Test failures,Compilation errors,Test failures
+RequestPostTableModel,9,3,10,Compilation errors,Test failures,Compilation errors,Compilation errors
+PopupMenuHttpMessageContainer,8,3,12,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+PausableScheduledThreadPoolExecutor,15,3,13,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+PolicyDialog,3,3,8,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+HttpSessionsTableModel,12,3,5,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+ContentSplitter,3,3,7,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+PopupMenuItemContextDataDrivenNode,6,3,10,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+RequestByteHttpPanelViewModel,2,3,8,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+AddOnDependencyChecker,25,3,22,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+SessionExcludeFromSpiderPanel,3,3,10,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+ApiAction,1,3,2,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+HttpBreakpointManagementDaemonImpl,23,1,7,Compilation errors,Success
+UsersAPI,3,1,37,Compilation errors,Success
+UninstalledAddOnsTableModel,12,3,9,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+ExtensionSitesRefresh,5,3,3,Test failures,Test failures,Test failures,Test failures
+Statsd,12,0,3,Success
+DialogModifyDomainAlwaysInScope,2,3,2,Compilation errors,Compilation errors,Test configuration errors,Test configuration errors
+PopupMenuJumpTo,4,3,16,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+DynSSLParam,3,3,4,Compilation errors,Test failures,Compilation errors,Test failures
+HttpRequestHeaderPanelTextView,3,3,8,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+SqlTableAlertTag,6,1,11,Compilation errors,Success
+HttpResponseBody,2,3,8,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+PopupMenuItemSiteNodeContextMenuFactory,6,3,9,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+AntiCsrfToken,11,0,7,Success
+ScriptCollection,5,3,1,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+AlertViewPanel,14,2,54,Compilation errors,Compilation errors,Success
+BackgroundImagePanel,1,3,11,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+SearchResultsTableModel,22,3,16,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+OptionsScriptPanel,6,3,14,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+CookieBasedSessionManagementMethodType,20,3,26,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+NotesAddDialog,6,3,14,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+HttpSessionsPanel,14,3,31,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+VersionedAbstractParam,5,3,4,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+ProxyThreadSSL,1,3,1,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+ScriptNode,6,3,2,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+PassiveScanParam,15,1,11,Compilation errors,Success
+AbstractHttpStringHttpPanelViewModel,1,3,3,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+SampleResponse,3,3,5,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+HistoryFilterPlusDialog,4,3,32,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+StatsdClient,6,3,13,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+ZapTocView,1,3,10,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+HighlightSearchEntry,7,3,2,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+HttpAuthSessionManagementMethodType,19,3,16,Test failures,Test failures,Test failures,Success
+ExtensionAuthorization,11,3,17,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+ContextExportDialog,4,3,11,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+AbstractParam,8,3,12,Compilation errors,Test failures,Test failures,Test failures
+InStringSearchQuery,1,0,0,Success
+JavascriptEngineWrapper,4,3,5,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+ZapBasicSearchNavigatorUI,1,3,10,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+ExtensionStats,9,3,11,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+PopupMenuItemHistoryReferenceContainer,5,3,11,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+HttpPanelParamTableModel,12,3,9,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+OptionsCallbackPanel,5,3,17,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+AbstractHttpByteHttpPanelViewModel,1,3,3,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+ExtensionHttpPanelSyntaxHighlightTextView,9,3,22,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+VariantFormQuery,5,3,4,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+AbstractGenericScanFilter,5,3,9,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+ComponentMaximiserMouseListener,4,3,10,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+AbstractAPIGenerator,5,1,8,Compilation errors,Success
+HttpHeaderField,5,0,1,Success
+PopupMenuItemContext,4,3,3,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+ApiView,1,1,2,Compilation errors,Success
+Constant,1,3,48,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+GoAPIGenerator,1,3,15,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+ExtensionAlert,31,3,50,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+ParosTableContext,3,3,11,Compilation errors,Test failures,Test failures,Test failures
+HttpPanelManager,25,3,11,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+RequestLargeRequestAllView,7,3,3,Compilation errors,Compilation errors,Compilation errors,Compilation errors
+PausableThreadPoolExecutor,8,2,10,Compilation errors,Compilation errors,Success

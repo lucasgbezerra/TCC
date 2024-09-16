@@ -215,7 +215,7 @@ def packagePath(filepath):
 def buildPrompt(classPath, testPath=None, className=None, testName=None ,classMethods=None, error=None):
 
     if error and len(error) > 0:
-        repairTemplate = readFile('repairTemplate.txt')
+        repairTemplate = readFile('./templates/repairTemplate.txt')
         testCode = readClass(testPath)
         repairTemplate = repairTemplate.replace('ERROR_MESSAGE', error)
         repairTemplate = repairTemplate.replace('TEST_CODE', testCode)
@@ -223,7 +223,7 @@ def buildPrompt(classPath, testPath=None, className=None, testName=None ,classMe
         return f'{repairTemplate}'
 
     else:
-        generatioTemplate = readFile('generatioTemplate.txt')
+        generatioTemplate = readFile('./templates/generatioTemplate.txt')
         generatioTemplate = generatioTemplate.replace('CLASS_NAME', className)
         generatioTemplate = generatioTemplate.replace('TEST_NAME', testName)
         generatioTemplate = generatioTemplate.replace('CLASS_PATH', classPath)
@@ -306,9 +306,9 @@ def identifyError(errorMessage):
         return "Unknown error type"
 
 def main():
-    projectsInfos = readJson('projectsInfos.json')
-    infos = readJson('infos.json')
-    outputTemplate = readFile('outputTemplate.txt')
+    projectsInfos = readJson('arquivos_de_configuracao/projectsInfos.json')
+    
+    outputTemplate = readFile('./templates/outputTemplate.txt')
     repairTries = 0
     testcompiled = False
     
@@ -317,54 +317,57 @@ def main():
     writeCSV({}, csvFileName)
 
     # Process each class
-    projectInfos = projectsInfos[0]
-    classesInfo = infos[0]['classes']
-   
-    for classInfo in classesInfo:
-        # Initialize data
-        print(f"==> {classesInfo.index(classInfo)}")
-        data = {
-            'class': classInfo['name'],
-            'numMethods': len(classInfo['methods']),
-            'numTries': 0,
-            'numImports': countImports(classInfo['classPath']),
-            'outputList': []
-        }
-        testCreated = False
-        currentTest = ""
-        repairTries = 0
-        if os.path.exists(classInfo['testPath']):
-            currentTest = readClass(classInfo['testPath'])
-        testCreated = processTest(classInfo)
-
-        if not testCreated:
-            print(f"Test not created for class: {classInfo['name']}")
-            writeCSV(data, csvFileName)
-            continue
+    for projectInfos in projectsInfos:
+        project = readJson(f"arquivos_de_configuracao/{projectInfos['name']}-info.json")
         
-        # Run the test
-        while repairTries <= 3:
-            testcompiled, error = runTest(projectInfos['source'], classInfo['testPath'], projectInfos['gradlew'])
+        classesInfo = project['classes']
+    
+        for classInfo in classesInfo:
+            # Initialize data
+            print(f"==> {classesInfo.index(classInfo)}")
+            data = {
+                'class': classInfo['name'],
+                'numMethods': len(classInfo['methods']),
+                'numTries': 0,
+                'numImports': countImports(classInfo['classPath']),
+                'outputList': []
+                
+            }
+            testCreated = False
+            currentTest = ""
+            repairTries = 0
+            if os.path.exists(classInfo['testPath']):
+                currentTest = readClass(classInfo['testPath'])
+            testCreated = processTest(classInfo)
 
-            data['numTries'] = repairTries
-            if testcompiled:
-                data['outputList'].append("Success")
-                break
-
-            errorType = identifyError(error)
-            if errorType == "Unknown error type":
-                errorType = getOpenAiResponse([{"role": "user", "content": f'Error: {error}\n{outputTemplate}'}])
-            data['outputList'].append(errorType)
+            if not testCreated:
+                print(f"Test not created for class: {classInfo['name']}")
+                writeCSV(data, csvFileName)
+                continue
             
-            if repairTries < 3:
-                processTest(classInfo, error)
-            repairTries += 1
-        
-        if data['outputList'][-1] != "Success" and data['outputList'][-1] != "Test failures":
-            removeTestFile(classInfo['testPath'], currentTest)
+            # Run the test
+            while repairTries <= 3:
+                testcompiled, error = runTest(projectInfos['source'], classInfo['testPath'], projectInfos['gradlew'])
 
-        # Write data for the current class to the CSV file
-        writeCSV(data, csvFileName)
+                data['numTries'] = repairTries
+                if testcompiled:
+                    data['outputList'].append("Success")
+                    break
+
+                errorType = identifyError(error)
+                if errorType == "Unknown error type":
+                    errorType = getOpenAiResponse([{"role": "user", "content": f'Error: {error}\n{outputTemplate}'}])
+                data['outputList'].append(errorType)
+                
+                if repairTries < 3:
+                    processTest(classInfo, error)
+                repairTries += 1
+            
+            if data['outputList'][-1] != "Success" and data['outputList'][-1] != "Test failures":
+                removeTestFile(classInfo['testPath'], currentTest)
+
+            # Write data for the current class to the CSV file
+            writeCSV(data, csvFileName)
 
 if __name__ == "__main__":
     main()

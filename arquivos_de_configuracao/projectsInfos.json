@@ -1,0 +1,4 @@
+[
+    {"name": "zaproxy", "source": "/home/lucas/tcc/reps/zaproxy", "gradlew": true},
+    {"name": "Stirling-PDF", "source": "/home/lucas/tcc/reps/Stirling-PDF", "gradlew": true}
+]
